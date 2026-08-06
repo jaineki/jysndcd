@@ -34,23 +34,6 @@
         ::-webkit-scrollbar-track { background: #121212; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #ff5500; }
-
-        /* Mobile/touch fixes: remove tap flash, kill the 300ms tap delay so
-           buttons feel instant on Android, and keep the volume slider
-           usable with a finger on touch devices. */
-        button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-        input[type="range"] { -webkit-appearance: none; appearance: none; }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px; height: 14px; border-radius: 9999px;
-            background: #ff5500; cursor: pointer; margin-top: -1px;
-        }
-        input[type="range"]::-moz-range-thumb {
-            width: 14px; height: 14px; border-radius: 9999px;
-            background: #ff5500; cursor: pointer; border: none;
-        }
-        /* Prevent iOS/Android from auto-zooming into search input on focus */
-        input[type="text"] { font-size: 16px; }
     </style>
 </head>
 <body class="bg-soundcloud-dark text-gray-100 min-h-screen flex flex-col justify-between selection:bg-soundcloud-orange selection:text-white">
@@ -82,7 +65,7 @@
                     </button>
                 </div>
 
-                <button onclick="openPricingModal()" class="bg-gradient-to-r from-soundcloud-orange to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-lg shadow-soundcloud-orange/20 animate-pulse">
+                <button onclick="window.location.href='/upgrade.html'" class="bg-gradient-to-r from-soundcloud-orange to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-lg shadow-soundcloud-orange/20 animate-pulse">
                     <i class="fa-solid fa-crown text-yellow-300"></i> Upgrade Plan
                 </button>
 
@@ -224,7 +207,7 @@
             <!-- Progress Bar -->
             <div class="flex items-center gap-3 w-full">
                 <span id="current-time" class="text-xs text-gray-400 w-10 text-right">0:00</span>
-                <div id="seek-bar" class="flex-1 relative cursor-pointer group py-2 -my-2" style="touch-action: none;">
+                <div class="flex-1 relative cursor-pointer group" onclick="seekAudio(event)">
                     <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
                         <div id="progress-bar" class="bg-soundcloud-orange h-full w-0 transition-all duration-100"></div>
                     </div>
@@ -232,37 +215,37 @@
                 <span id="total-duration" class="text-xs text-gray-400 w-10">0:00</span>
             </div>
 
-            <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center justify-between">
                 <!-- Track Info -->
-                <div class="flex items-center space-x-3 flex-1 min-w-0">
+                <div class="flex items-center space-x-3 w-1/3 min-w-0">
                     <div class="relative w-12 h-12 rounded-xl bg-gray-800 overflow-hidden flex-shrink-0 shadow">
                         <img id="player-thumb" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&q=80" alt="Album Art" class="w-full h-full object-cover">
                         <div id="player-loading" class="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center hidden">
                             <div class="w-5 h-5 border-2 border-soundcloud-orange border-t-transparent rounded-full animate-spin"></div>
                         </div>
                     </div>
-                    <div class="min-w-0 hidden xs:block sm:block">
+                    <div class="min-w-0">
                         <h4 id="player-title" class="text-sm font-medium text-white truncate">Select a track to play</h4>
                         <p id="player-artist" class="text-xs text-gray-400 truncate">JaySoundCloud</p>
                     </div>
                 </div>
 
                 <!-- Player Controls -->
-                <div class="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-                    <button onclick="previousTrack()" class="text-gray-400 hover:text-white transition text-lg p-2.5 -m-0.5">
+                <div class="flex items-center space-x-4">
+                    <button onclick="previousTrack()" class="text-gray-400 hover:text-white transition text-lg">
                         <i class="fa-solid fa-backward-step"></i>
                     </button>
-                    <button id="play-pause-btn" onclick="togglePlayPause()" disabled class="w-12 h-12 rounded-full bg-soundcloud-orange hover:bg-orange-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white flex items-center justify-center text-lg shadow-lg shadow-soundcloud-orange/20 transition transform active:scale-95 flex-shrink-0">
+                    <button id="play-pause-btn" onclick="togglePlayPause()" disabled class="w-12 h-12 rounded-full bg-soundcloud-orange hover:bg-orange-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white flex items-center justify-center text-lg shadow-lg shadow-soundcloud-orange/20 transition transform active:scale-95">
                         <i id="play-icon" class="fa-solid fa-play ml-0.5"></i>
                     </button>
-                    <button onclick="nextTrack()" class="text-gray-400 hover:text-white transition text-lg p-2.5 -m-0.5">
+                    <button onclick="nextTrack()" class="text-gray-400 hover:text-white transition text-lg">
                         <i class="fa-solid fa-forward-step"></i>
                     </button>
                 </div>
 
                 <!-- Volume & Extra Controls -->
-                <div class="hidden sm:flex items-center space-x-3 flex-1 justify-end">
-                    <button onclick="toggleMute()" class="text-gray-400 hover:text-white transition p-2 -m-2">
+                <div class="flex items-center space-x-3 w-1/3 justify-end">
+                    <button onclick="toggleMute()" class="text-gray-400 hover:text-white transition">
                         <i id="volume-icon" class="fa-solid fa-volume-high"></i>
                     </button>
                     <input 
@@ -276,9 +259,6 @@
                         class="w-20 accent-soundcloud-orange cursor-pointer h-1.5 bg-gray-700 rounded-lg"
                     >
                 </div>
-                <button onclick="toggleMute()" class="sm:hidden text-gray-400 hover:text-white transition p-2.5 -m-0.5 flex-shrink-0">
-                    <i id="volume-icon-mobile" class="fa-solid fa-volume-high"></i>
-                </button>
             </div>
         </div>
     </div>
@@ -323,126 +303,6 @@
                 <span id="auth-switch-text">Don't have an account?</span>
                 <button onclick="toggleAuthMode()" id="auth-switch-btn" class="text-soundcloud-orange font-medium ml-1 hover:underline">Sign Up</button>
             </div>
-        </div>
-    </div>
-
-    <!-- PRICING & UPGRADE MODAL -->
-    <div id="pricing-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden overflow-y-auto p-4">
-        <div class="bg-soundcloud-card border border-gray-800 rounded-3xl w-full max-w-4xl p-6 sm:p-8 relative shadow-2xl my-8">
-            <button onclick="closePricingModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-xl">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            
-            <div class="text-center max-w-xl mx-auto mb-8">
-                <span class="text-xs bg-soundcloud-orange/20 text-soundcloud-orange px-3 py-1 rounded-full font-semibold uppercase tracking-wider">Subscription Tiers</span>
-                <h2 class="text-2xl font-bold text-white mt-2">Upgrade Your JaySoundCloud Experience</h2>
-                <p class="text-xs text-gray-400 mt-1">Choose a plan below and pay securely via GCash. Send your receipt to activate instantly!</p>
-            </div>
-
-            <!-- Pricing Cards Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                
-                <!-- Starter Plan -->
-                <div class="bg-soundcloud-dark border border-gray-800 rounded-2xl p-6 flex flex-col justify-between hover:border-gray-700 transition">
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-base font-bold text-white">Starter</h3>
-                            <span class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded-lg">3 Days</span>
-                        </div>
-                        <div class="mb-4">
-                            <span class="text-3xl font-extrabold text-white">₱9</span>
-                            <span class="text-xs text-gray-400"> / 3 days</span>
-                        </div>
-                        <ul class="space-y-2.5 text-xs text-gray-300 mb-6">
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Unli Music Search</li>
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Unli Music Streaming</li>
-                            <li class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-xmark text-red-500"></i> No Playlist / Liked Button</li>
-                            <li class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-xmark text-red-500"></i> No Downloads</li>
-                        </ul>
-                    </div>
-                    <button onclick="selectPlan('Starter', '₱9 / 3 Days')" class="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-medium text-xs transition border border-gray-700">
-                        Choose Starter
-                    </button>
-                </div>
-
-                <!-- Popular Plan (Featured) -->
-                <div class="bg-soundcloud-dark border-2 border-soundcloud-orange rounded-2xl p-6 flex flex-col justify-between relative shadow-xl shadow-soundcloud-orange/10">
-                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-soundcloud-orange text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full">
-                        Most Popular
-                    </div>
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-base font-bold text-white">Popular</h3>
-                            <span class="text-xs bg-soundcloud-orange/20 text-soundcloud-orange px-2.5 py-1 rounded-lg font-medium">7 Days</span>
-                        </div>
-                        <div class="mb-4">
-                            <span class="text-3xl font-extrabold text-white">₱29</span>
-                            <span class="text-xs text-gray-400"> / 7 days</span>
-                        </div>
-                        <ul class="space-y-2.5 text-xs text-gray-300 mb-6">
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Unli Music Search & Stream</li>
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> <b>Playlist / Liked Songs (❤️)</b></li>
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Cloud Sync with Supabase</li>
-                            <li class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-xmark text-red-500"></i> No Downloads</li>
-                        </ul>
-                    </div>
-                    <button onclick="selectPlan('Popular', '₱29 / 7 Days')" class="w-full py-2.5 bg-soundcloud-orange hover:bg-orange-600 text-white rounded-xl font-medium text-xs transition shadow-md shadow-soundcloud-orange/30">
-                        Choose Popular
-                    </button>
-                </div>
-
-                <!-- Premium Plan -->
-                <div class="bg-soundcloud-dark border border-amber-500/50 rounded-2xl p-6 flex flex-col justify-between hover:border-amber-500 transition">
-                    <div>
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-base font-bold text-white flex items-center gap-1.5"><i class="fa-solid fa-crown text-yellow-400"></i> Premium</h3>
-                            <span class="text-xs bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-lg font-medium">30 Days</span>
-                        </div>
-                        <div class="mb-4">
-                            <span class="text-3xl font-extrabold text-white">₱49</span>
-                            <span class="text-xs text-gray-400"> / 30 days</span>
-                        </div>
-                        <ul class="space-y-2.5 text-xs text-gray-300 mb-6">
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Unli Music Search & Stream</li>
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Full Playlist & Liked Songs</li>
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> <b>Direct MP3 Download Button</b></li>
-                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> VIP Priority Access</li>
-                        </ul>
-                    </div>
-                    <button onclick="selectPlan('Premium', '₱49 / 30 Days')" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-medium text-xs transition shadow-md shadow-amber-500/20">
-                        Choose Premium
-                    </button>
-                </div>
-
-            </div>
-
-            <!-- GCash Payment & Instructions Section -->
-            <div class="bg-soundcloud-dark border border-gray-800 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                <div class="flex flex-col items-center justify-center p-4 bg-soundcloud-card rounded-xl border border-gray-700">
-                    <p class="text-xs font-semibold text-white mb-3">Scan GCash QR Code to Pay</p>
-                    <img src="./gcash-qr.jpg" alt="GCash QR Code" class="w-48 h-auto rounded-lg shadow-md border border-gray-600 object-contain">
-                    <p class="text-[11px] text-gray-400 mt-2 text-center">J••• B • 09917741567</p>
-                </div>
-                <div class="space-y-4">
-                    <h4 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-circle-info text-soundcloud-orange"></i> How to Upgrade:
-                    </h4>
-                    <ol class="space-y-2 text-xs text-gray-300 list-decimal pl-4">
-                        <li>Scan the GCash QR code above using your GCash app and transfer the exact amount (₱9, ₱29, or ₱49).</li>
-                        <li>Take a screenshot of your successful transaction receipt.</li>
-                        <li>Click the button below to message our official Facebook page.</li>
-                        <li>Send your <b>Gmail address</b>, chosen <b>Plan</b>, and your <b>payment screenshot receipt</b>.</li>
-                        <li>The admin will activate your account tier within minutes!</li>
-                    </ol>
-                    <div id="selected-plan-notice" class="hidden p-3 bg-soundcloud-orange/10 border border-soundcloud-orange/30 rounded-xl text-xs text-soundcloud-orange font-medium">
-                        Selected Plan: <span id="target-plan-name">None</span>
-                    </div>
-                    <a id="fb-upgrade-btn" href="https://www.facebook.com/profile.php?id=61590490534032" target="_blank" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 block text-center">
-                        <i class="fa-brands fa-facebook text-base"></i> Send Receipt on Facebook Messenger
-                    </a>
-                </div>
-            </div>
-
         </div>
     </div>
 
@@ -537,7 +397,6 @@
                     currentTier = 'free';
                 }
             } catch (e) {
-                console.log('No subscription record found, defaulting to free/starter check or local');
                 currentTier = 'free';
             }
             updateTierBadgeUI();
@@ -560,9 +419,7 @@
         function showAppUI() {
             document.getElementById('auth-wall').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
-            const navTabs = document.getElementById('nav-tabs');
-            navTabs.classList.remove('hidden');
-            navTabs.classList.add('flex');
+            document.getElementById('nav-tabs').classList.remove('hidden');
             document.getElementById('player-bar').classList.remove('hidden');
             searchSoundCloud('lofi chill');
         }
@@ -570,9 +427,7 @@
         function hideAppUI() {
             document.getElementById('auth-wall').classList.remove('hidden');
             document.getElementById('app-content').classList.add('hidden');
-            const navTabs = document.getElementById('nav-tabs');
-            navTabs.classList.add('hidden');
-            navTabs.classList.remove('flex');
+            document.getElementById('nav-tabs').classList.add('hidden');
             document.getElementById('player-bar').classList.add('hidden');
         }
 
@@ -685,33 +540,11 @@
             hideAppUI();
         }
 
-        // Pricing Modal
-        function openPricingModal() {
-            document.getElementById('pricing-modal').classList.remove('hidden');
-        }
-
-        function closePricingModal() {
-            document.getElementById('pricing-modal').classList.add('hidden');
-        }
-
-        function selectPlan(planName, priceStr) {
-            const notice = document.getElementById('selected-plan-notice');
-            const targetName = document.getElementById('target-plan-name');
-            const fbBtn = document.getElementById('fb-upgrade-btn');
-
-            notice.classList.remove('hidden');
-            targetName.textContent = `${planName} (${priceStr})`;
-
-            const userEmail = currentUser ? currentUser.email : 'my-email@gmail.com';
-            const msg = encodeURIComponent(`Hello Jay! I paid for the ${planName} Plan (${priceStr}). My Gmail is: ${userEmail}. Here is my GCash screenshot receipt:`);
-            fbBtn.href = `https://www.facebook.com/profile.php?id=61590490534032&text=${msg}`;
-        }
-
         // Tab Navigation
         function switchTab(tab) {
             if (currentTier === 'starter' && tab === 'liked') {
                 alert('Starter Plan (₱9) does not include Liked Songs or Playlists. Please upgrade to Popular (₱29) or Premium (₱49)!');
-                openPricingModal();
+                window.location.href = '/upgrade.html';
                 return;
             }
 
@@ -824,7 +657,7 @@
         async function toggleLike(trackIndex) {
             if (currentTier === 'starter' || currentTier === 'free') {
                 alert('Liked Songs & Playlists are available on Popular (₱29) and Premium (₱49) plans!');
-                openPricingModal();
+                window.location.href = '/upgrade.html';
                 return;
             }
 
@@ -946,7 +779,7 @@
                             <span>${isCurrent && isPlaying ? 'Playing' : 'Play'}</span>
                         </button>
                         ${canDownload ? `
-                            <button onclick="downloadTrack(currentTracks[${index}].url, currentTracks[${index}].title)" class="py-2 px-3 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white rounded-xl text-xs transition border border-amber-500/30" title="Download MP3 (Premium)">
+                            <button onclick="downloadTrack('${track.url}', '${escapeHtml(track.title)}')" class="py-2 px-3 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white rounded-xl text-xs transition border border-amber-500/30" title="Download MP3 (Premium)">
                                 <i class="fa-solid fa-download"></i>
                             </button>
                         ` : ''}
@@ -983,7 +816,7 @@
                                 <h3 class="text-sm font-semibold text-white truncate" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</h3>
                                 <p class="text-xs text-gray-400 truncate mt-0.5"><i class="fa-solid fa-user-pen mr-1 text-gray-500"></i>${escapeHtml(track.user)}</p>
                             </div>
-                            <button onclick="removeLikedSong(likedTracks[${index}].url)" class="text-red-500 hover:text-red-400 transition text-sm p-1" title="Remove from Liked">
+                            <button onclick="removeLikedSong('${track.url}')" class="text-red-500 hover:text-red-400 transition text-sm p-1" title="Remove from Liked">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
@@ -1001,7 +834,7 @@
                             <span>Play</span>
                         </button>
                         ${canDownload ? `
-                            <button onclick="downloadTrack(likedTracks[${index}].url, likedTracks[${index}].title)" class="py-2 px-3 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white rounded-xl text-xs transition border border-amber-500/30" title="Download MP3 (Premium)">
+                            <button onclick="downloadTrack('${track.url}', '${escapeHtml(track.title)}')" class="py-2 px-3 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white rounded-xl text-xs transition border border-amber-500/30" title="Download MP3 (Premium)">
                                 <i class="fa-solid fa-download"></i>
                             </button>
                         ` : ''}
@@ -1014,7 +847,7 @@
         async function downloadTrack(soundcloudUrl, title) {
             if (currentTier !== 'premium') {
                 alert('Direct MP3 Download is a Premium feature (₱49)!');
-                openPricingModal();
+                window.location.href = '/upgrade.html';
                 return;
             }
 
@@ -1078,16 +911,9 @@
                         document.getElementById('player-thumb').src = data.result.thumbnail;
                     }
                     audioElement.src = currentStreamUrl;
-                    audioElement.load();
-                    audioElement.play().then(() => {
-                        isPlaying = true;
-                        updatePlayPauseUI();
-                    }).catch(err => {
-                        console.error('Playback blocked or failed:', err);
-                        isPlaying = false;
-                        updatePlayPauseUI();
-                        alert('Tap the play button to start audio.');
-                    });
+                    audioElement.play();
+                    isPlaying = true;
+                    updatePlayPauseUI();
                 } else {
                     alert('Could not retrieve streaming URL for this track.');
                 }
@@ -1107,17 +933,11 @@
             if (isPlaying) {
                 audioElement.pause();
                 isPlaying = false;
-                updatePlayPauseUI();
             } else {
-                audioElement.play().then(() => {
-                    isPlaying = true;
-                    updatePlayPauseUI();
-                }).catch(err => {
-                    console.error('Playback blocked or failed:', err);
-                    isPlaying = false;
-                    updatePlayPauseUI();
-                });
+                audioElement.play();
+                isPlaying = true;
             }
+            updatePlayPauseUI();
         }
 
         function updatePlayPauseUI() {
@@ -1164,45 +984,37 @@
             totalDurationEl.textContent = formatTime(duration);
         }
 
-        function seekToClientX(clientX) {
+        function seekAudio(e) {
             if (isNaN(audioElement.duration)) return;
-            const seekBar = document.getElementById('seek-bar');
-            const rect = seekBar.getBoundingClientRect();
-            const x = clientX - rect.left;
-            const percent = Math.min(1, Math.max(0, x / rect.width));
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const width = rect.width;
+            const percent = clickX / width;
             audioElement.currentTime = percent * audioElement.duration;
-            progressBar.style.width = `${percent * 100}%`;
         }
-
-        // Support both mouse clicks (desktop) and touch taps/drags (Android/mobile)
-        const seekBarEl = document.getElementById('seek-bar');
-        let isSeeking = false;
-        seekBarEl.addEventListener('mousedown', (e) => { isSeeking = true; seekToClientX(e.clientX); });
-        window.addEventListener('mousemove', (e) => { if (isSeeking) seekToClientX(e.clientX); });
-        window.addEventListener('mouseup', () => { isSeeking = false; });
-        seekBarEl.addEventListener('touchstart', (e) => { isSeeking = true; seekToClientX(e.touches[0].clientX); }, { passive: true });
-        seekBarEl.addEventListener('touchmove', (e) => { if (isSeeking) seekToClientX(e.touches[0].clientX); }, { passive: true });
-        seekBarEl.addEventListener('touchend', () => { isSeeking = false; });
 
         function setVolume(value) {
             audioElement.volume = value;
-            const iconClass = value == 0 ? 'fa-solid fa-volume-xmark' : (value < 0.5 ? 'fa-solid fa-volume-low' : 'fa-solid fa-volume-high');
-            document.getElementById('volume-icon').className = iconClass;
-            const mobileIcon = document.getElementById('volume-icon-mobile');
-            if (mobileIcon) mobileIcon.className = iconClass;
+            const volIcon = document.getElementById('volume-icon');
+            if (value == 0) {
+                volIcon.className = 'fa-solid fa-volume-xmark';
+            } else if (value < 0.5) {
+                volIcon.className = 'fa-solid fa-volume-low';
+            } else {
+                volIcon.className = 'fa-solid fa-volume-high';
+            }
         }
 
         function toggleMute() {
-            const slider = document.getElementById('volume-slider');
             if (audioElement.volume > 0) {
                 audioElement.dataset.lastVol = audioElement.volume;
                 audioElement.volume = 0;
-                if (slider) slider.value = 0;
-                setVolume(0);
+                document.getElementById('volume-slider').value = 0;
+                document.getElementById('volume-icon').className = 'fa-solid fa-volume-xmark';
             } else {
-                const restored = parseFloat(audioElement.dataset.lastVol) || 1;
+                const restored = audioElement.dataset.lastVol || 1;
                 audioElement.volume = restored;
-                if (slider) slider.value = restored;
+                document.getElementById('volume-slider').value = restored;
                 setVolume(restored);
             }
         }
