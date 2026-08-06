@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JaySoundCloud - Stream & Liked Songs</title>
+    <title>JaySoundCloud - Stream & Playlists</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -48,7 +48,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                        JaySoundCloud <span class="text-xs bg-soundcloud-orange/20 text-soundcloud-orange px-2 py-0.5 rounded-full font-medium">Pro</span>
+                        JaySoundCloud <span id="user-tier-badge" class="text-xs bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full font-medium border border-gray-700">Free Tier</span>
                     </h1>
                     <p class="text-xs text-gray-400">Stream & Cloud Playlists</p>
                 </div>
@@ -56,7 +56,7 @@
 
             <!-- Navigation Tabs & Search -->
             <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                <div class="flex items-center bg-soundcloud-card border border-gray-800 rounded-xl p-1">
+                <div id="nav-tabs" class="hidden items-center bg-soundcloud-card border border-gray-800 rounded-xl p-1">
                     <button id="tab-search-btn" onclick="switchTab('search')" class="px-4 py-1.5 rounded-lg text-xs font-medium transition bg-soundcloud-orange text-white">
                         <i class="fa-solid fa-magnifying-glass mr-1.5"></i> Search
                     </button>
@@ -64,6 +64,10 @@
                         <i class="fa-solid fa-heart mr-1.5 text-red-500"></i> Liked Songs <span id="liked-count" class="ml-1 bg-gray-800 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
                     </button>
                 </div>
+
+                <button onclick="openPricingModal()" class="bg-gradient-to-r from-soundcloud-orange to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-lg shadow-soundcloud-orange/20 animate-pulse">
+                    <i class="fa-solid fa-crown text-yellow-300"></i> Upgrade Plan
+                </button>
 
                 <!-- Auth Area -->
                 <div id="auth-area">
@@ -78,104 +82,126 @@
     <!-- Main Content Area -->
     <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8 mb-28">
         
-        <!-- SEARCH VIEW -->
-        <div id="view-search" class="space-y-6">
-            <!-- Search Bar Form -->
-            <form id="search-form" onsubmit="handleSearch(event)" class="max-w-2xl mx-auto flex gap-2">
-                <div class="relative flex-1">
-                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </span>
-                    <input 
-                        type="text" 
-                        id="search-input" 
-                        placeholder="Search songs, artists, or genres..." 
-                        value="lofi chill"
-                        class="w-full pl-11 pr-4 py-3 bg-soundcloud-card border border-gray-700 rounded-2xl text-sm focus:outline-none focus:border-soundcloud-orange focus:ring-1 focus:ring-soundcloud-orange transition shadow-inner"
-                        required
-                    >
-                </div>
-                <button 
-                    type="submit" 
-                    class="bg-soundcloud-orange hover:bg-orange-600 text-white px-6 py-3 rounded-2xl font-medium text-sm transition shadow-lg shadow-soundcloud-orange/25 flex items-center justify-center"
-                >
-                    Search
+        <!-- AUTH WALL (When user is not signed in) -->
+        <div id="auth-wall" class="max-w-md mx-auto my-12 bg-soundcloud-card border border-gray-800 rounded-3xl p-8 text-center shadow-2xl">
+            <div class="w-16 h-16 rounded-2xl bg-soundcloud-orange/10 text-soundcloud-orange flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fa-brands fa-soundcloud"></i>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-2">Welcome to JaySoundCloud</h2>
+            <p class="text-xs text-gray-400 mb-6">Please sign in or create an account to start searching, streaming, and saving your favorite tracks.</p>
+            <div class="flex gap-3">
+                <button onclick="openAuthModal('signin')" class="flex-1 py-3 bg-soundcloud-orange hover:bg-orange-600 text-white rounded-xl font-medium text-sm transition shadow-lg shadow-soundcloud-orange/20">
+                    Sign In
                 </button>
-            </form>
-
-            <!-- Quick Tags -->
-            <div class="flex items-center justify-center gap-2 flex-wrap pb-2">
-                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mr-1">Trending:</span>
-                <button onclick="quickSearch('lofi hip hop')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Lofi Hip Hop</button>
-                <button onclick="quickSearch('phonk remix')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Phonk Remix</button>
-                <button onclick="quickSearch('deep house')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Deep House</button>
-                <button onclick="quickSearch('synthwave')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Synthwave</button>
-            </div>
-
-            <!-- Section Title -->
-            <div class="flex items-center justify-between pt-4">
-                <h2 id="section-title" class="text-base font-semibold text-white">Search Results</h2>
-                <span id="result-count" class="text-xs text-gray-400"></span>
-            </div>
-
-            <!-- Loading State -->
-            <div id="loading-state" class="hidden flex flex-col items-center justify-center py-20">
-                <div class="w-10 h-10 border-4 border-soundcloud-orange border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p class="text-sm text-gray-400">Searching SoundCloud tracks...</p>
-            </div>
-
-            <!-- Error State -->
-            <div id="error-state" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-2xl text-center my-8">
-                <i class="fa-solid fa-circle-exclamation text-2xl mb-2"></i>
-                <p id="error-message" class="text-sm font-medium">Failed to fetch tracks. Please try again.</p>
-            </div>
-
-            <!-- Results Grid -->
-            <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Populated dynamically -->
+                <button onclick="openAuthModal('signup')" class="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-medium text-sm transition border border-gray-700">
+                    Sign Up
+                </button>
             </div>
         </div>
 
-        <!-- LIKED SONGS VIEW -->
-        <div id="view-liked" class="hidden space-y-6">
-            <div class="flex items-center justify-between border-b border-gray-800 pb-4">
-                <div>
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-heart text-red-500"></i> Liked Songs Playlist
-                    </h2>
-                    <p class="text-xs text-gray-400 mt-1">Your saved tracks synced with Supabase</p>
+        <!-- APP CONTENT (Hidden until signed in) -->
+        <div id="app-content" class="hidden">
+            
+            <!-- SEARCH VIEW -->
+            <div id="view-search" class="space-y-6">
+                <!-- Search Bar Form -->
+                <form id="search-form" onsubmit="handleSearch(event)" class="max-w-2xl mx-auto flex gap-2">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input 
+                            type="text" 
+                            id="search-input" 
+                            placeholder="Search songs, artists, or genres..." 
+                            value="lofi chill"
+                            class="w-full pl-11 pr-4 py-3 bg-soundcloud-card border border-gray-700 rounded-2xl text-sm focus:outline-none focus:border-soundcloud-orange focus:ring-1 focus:ring-soundcloud-orange transition shadow-inner"
+                            required
+                        >
+                    </div>
+                    <button 
+                        type="submit" 
+                        class="bg-soundcloud-orange hover:bg-orange-600 text-white px-6 py-3 rounded-2xl font-medium text-sm transition shadow-lg shadow-soundcloud-orange/25 flex items-center justify-center"
+                    >
+                        Search
+                    </button>
+                </form>
+
+                <!-- Quick Tags -->
+                <div class="flex items-center justify-center gap-2 flex-wrap pb-2">
+                    <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mr-1">Trending:</span>
+                    <button onclick="quickSearch('lofi hip hop')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Lofi Hip Hop</button>
+                    <button onclick="quickSearch('phonk remix')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Phonk Remix</button>
+                    <button onclick="quickSearch('deep house')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Deep House</button>
+                    <button onclick="quickSearch('synthwave')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Synthwave</button>
                 </div>
-                <button onclick="loadLikedSongs()" class="bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-700 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-rotate"></i> Refresh
-                </button>
-            </div>
 
-            <div id="liked-loading" class="hidden flex flex-col items-center justify-center py-16">
-                <div class="w-8 h-8 border-3 border-soundcloud-orange border-t-transparent rounded-full animate-spin mb-3"></div>
-                <p class="text-xs text-gray-400">Loading your liked songs...</p>
-            </div>
-
-            <div id="liked-empty" class="hidden bg-soundcloud-card border border-gray-800 rounded-2xl p-12 text-center my-8">
-                <div class="w-14 h-14 rounded-2xl bg-soundcloud-orange/10 text-soundcloud-orange flex items-center justify-center mx-auto mb-4 text-2xl">
-                    <i class="fa-regular fa-heart"></i>
+                <!-- Section Title -->
+                <div class="flex items-center justify-between pt-4">
+                    <h2 id="section-title" class="text-base font-semibold text-white">Search Results</h2>
+                    <span id="result-count" class="text-xs text-gray-400"></span>
                 </div>
-                <h3 class="text-base font-semibold text-white mb-1">No liked songs yet</h3>
-                <p class="text-xs text-gray-400 max-w-sm mx-auto mb-6">Heart any track while searching to add it to your personal playlist.</p>
-                <button onclick="switchTab('search')" class="bg-soundcloud-orange hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-xs font-medium transition">
-                    Explore Tracks
-                </button>
+
+                <!-- Loading State -->
+                <div id="loading-state" class="hidden flex flex-col items-center justify-center py-20">
+                    <div class="w-10 h-10 border-4 border-soundcloud-orange border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p class="text-sm text-gray-400">Searching SoundCloud tracks...</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="error-state" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-2xl text-center my-8">
+                    <i class="fa-solid fa-circle-exclamation text-2xl mb-2"></i>
+                    <p id="error-message" class="text-sm font-medium">Failed to fetch tracks. Please try again.</p>
+                </div>
+
+                <!-- Results Grid -->
+                <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated dynamically -->
+                </div>
             </div>
 
-            <!-- Liked Grid -->
-            <div id="liked-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Populated dynamically -->
+            <!-- LIKED SONGS VIEW -->
+            <div id="view-liked" class="hidden space-y-6">
+                <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-heart text-red-500"></i> Liked Songs Playlist
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-1">Your saved tracks synced with Supabase</p>
+                    </div>
+                    <button onclick="loadLikedSongs()" class="bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-700 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                    </button>
+                </div>
+
+                <div id="liked-loading" class="hidden flex flex-col items-center justify-center py-16">
+                    <div class="w-8 h-8 border-3 border-soundcloud-orange border-t-transparent rounded-full animate-spin mb-3"></div>
+                    <p class="text-xs text-gray-400">Loading your liked songs...</p>
+                </div>
+
+                <div id="liked-empty" class="hidden bg-soundcloud-card border border-gray-800 rounded-2xl p-12 text-center my-8">
+                    <div class="w-14 h-14 rounded-2xl bg-soundcloud-orange/10 text-soundcloud-orange flex items-center justify-center mx-auto mb-4 text-2xl">
+                        <i class="fa-regular fa-heart"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-white mb-1">No liked songs yet</h3>
+                    <p class="text-xs text-gray-400 max-w-sm mx-auto mb-6">Heart any track while searching to add it to your personal playlist.</p>
+                    <button onclick="switchTab('search')" class="bg-soundcloud-orange hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-xs font-medium transition">
+                        Explore Tracks
+                    </button>
+                </div>
+
+                <!-- Liked Grid -->
+                <div id="liked-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated dynamically -->
+                </div>
             </div>
+
         </div>
 
     </main>
 
-    <!-- Sticky Audio Player Bar -->
-    <div id="player-bar" class="fixed bottom-0 left-0 right-0 z-50 bg-soundcloud-card/95 backdrop-blur-md border-t border-gray-800 shadow-2xl transition-all duration-300">
+    <!-- Sticky Audio Player Bar (Hidden until signed in & playing) -->
+    <div id="player-bar" class="fixed bottom-0 left-0 right-0 z-50 bg-soundcloud-card/95 backdrop-blur-md border-t border-gray-800 shadow-2xl transition-all duration-300 hidden">
         <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-2">
             
             <!-- Progress Bar -->
@@ -252,7 +278,7 @@
                     <i class="fa-brands fa-soundcloud"></i>
                 </div>
                 <h3 id="auth-modal-title" class="text-lg font-bold text-white">Sign In to JaySoundCloud</h3>
-                <p id="auth-modal-subtitle" class="text-xs text-gray-400 mt-1">Sync your liked songs & playlists</p>
+                <p id="auth-modal-subtitle" class="text-xs text-gray-400 mt-1">Access your music & playlists</p>
             </div>
 
             <div id="auth-error" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs mb-4"></div>
@@ -280,16 +306,151 @@
         </div>
     </div>
 
+    <!-- PRICING & UPGRADE MODAL -->
+    <div id="pricing-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center hidden overflow-y-auto p-4">
+        <div class="bg-soundcloud-card border border-gray-800 rounded-3xl w-full max-w-4xl p-6 sm:p-8 relative shadow-2xl my-8">
+            <button onclick="closePricingModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="text-center max-w-xl mx-auto mb-8">
+                <span class="text-xs bg-soundcloud-orange/20 text-soundcloud-orange px-3 py-1 rounded-full font-semibold uppercase tracking-wider">Subscription Tiers</span>
+                <h2 class="text-2xl font-bold text-white mt-2">Upgrade Your JaySoundCloud Experience</h2>
+                <p class="text-xs text-gray-400 mt-1">Choose a plan below and pay securely via GCash. Send your receipt to activate instantly!</p>
+            </div>
+
+            <!-- Pricing Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                
+                <!-- Starter Plan -->
+                <div class="bg-soundcloud-dark border border-gray-800 rounded-2xl p-6 flex flex-col justify-between hover:border-gray-700 transition">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold text-white">Starter</h3>
+                            <span class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded-lg">3 Days</span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-3xl font-extrabold text-white">₱9</span>
+                            <span class="text-xs text-gray-400"> / 3 days</span>
+                        </div>
+                        <ul class="space-y-2.5 text-xs text-gray-300 mb-6">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Unli Music Search</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Unli Music Streaming</li>
+                            <li class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-xmark text-red-500"></i> No Playlist / Liked Button</li>
+                            <li class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-xmark text-red-500"></i> No Downloads</li>
+                        </ul>
+                    </div>
+                    <button onclick="selectPlan('Starter', '₱9 / 3 Days')" class="w-full py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-medium text-xs transition border border-gray-700">
+                        Choose Starter
+                    </button>
+                </div>
+
+                <!-- Popular Plan (Featured) -->
+                <div class="bg-soundcloud-dark border-2 border-soundcloud-orange rounded-2xl p-6 flex flex-col justify-between relative shadow-xl shadow-soundcloud-orange/10">
+                    <div class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-soundcloud-orange text-white text-[10px] font-bold uppercase tracking-wider px-3 py-0.5 rounded-full">
+                        Most Popular
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold text-white">Popular</h3>
+                            <span class="text-xs bg-soundcloud-orange/20 text-soundcloud-orange px-2.5 py-1 rounded-lg font-medium">7 Days</span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-3xl font-extrabold text-white">₱29</span>
+                            <span class="text-xs text-gray-400"> / 7 days</span>
+                        </div>
+                        <ul class="space-y-2.5 text-xs text-gray-300 mb-6">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Unli Music Search & Stream</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> <b>Playlist / Liked Songs (❤️)</b></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Cloud Sync with Supabase</li>
+                            <li class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-xmark text-red-500"></i> No Downloads</li>
+                        </ul>
+                    </div>
+                    <button onclick="selectPlan('Popular', '₱29 / 7 Days')" class="w-full py-2.5 bg-soundcloud-orange hover:bg-orange-600 text-white rounded-xl font-medium text-xs transition shadow-md shadow-soundcloud-orange/30">
+                        Choose Popular
+                    </button>
+                </div>
+
+                <!-- Premium Plan -->
+                <div class="bg-soundcloud-dark border border-amber-500/50 rounded-2xl p-6 flex flex-col justify-between hover:border-amber-500 transition">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold text-white flex items-center gap-1.5"><i class="fa-solid fa-crown text-yellow-400"></i> Premium</h3>
+                            <span class="text-xs bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-lg font-medium">30 Days</span>
+                        </div>
+                        <div class="mb-4">
+                            <span class="text-3xl font-extrabold text-white">₱49</span>
+                            <span class="text-xs text-gray-400"> / 30 days</span>
+                        </div>
+                        <ul class="space-y-2.5 text-xs text-gray-300 mb-6">
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Unli Music Search & Stream</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> Full Playlist & Liked Songs</li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> <b>Direct MP3 Download Button</b></li>
+                            <li class="flex items-center gap-2"><i class="fa-solid fa-check text-green-500"></i> VIP Priority Access</li>
+                        </ul>
+                    </div>
+                    <button onclick="selectPlan('Premium', '₱49 / 30 Days')" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-medium text-xs transition shadow-md shadow-amber-500/20">
+                        Choose Premium
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- GCash Payment & Instructions Section -->
+            <div class="bg-soundcloud-dark border border-gray-800 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div class="flex flex-col items-center justify-center p-4 bg-soundcloud-card rounded-xl border border-gray-700">
+                    <p class="text-xs font-semibold text-white mb-3">Scan GCash QR Code to Pay</p>
+                    <img src="./gcash-qr.jpg" alt="GCash QR Code" class="w-48 h-auto rounded-lg shadow-md border border-gray-600 object-contain">
+                    <p class="text-[11px] text-gray-400 mt-2 text-center">J••• B • 09917741567</p>
+                </div>
+                <div class="space-y-4">
+                    <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-circle-info text-soundcloud-orange"></i> How to Upgrade:
+                    </h4>
+                    <ol class="space-y-2 text-xs text-gray-300 list-decimal pl-4">
+                        <li>Scan the GCash QR code above using your GCash app and transfer the exact amount (₱9, ₱29, or ₱49).</li>
+                        <li>Take a screenshot of your successful transaction receipt.</li>
+                        <li>Click the button below to message our official Facebook page.</li>
+                        <li>Send your <b>Gmail address</b>, chosen <b>Plan</b>, and your <b>payment screenshot receipt</b>.</li>
+                        <li>The admin will activate your account tier within minutes!</li>
+                    </ol>
+                    <div id="selected-plan-notice" class="hidden p-3 bg-soundcloud-orange/10 border border-soundcloud-orange/30 rounded-xl text-xs text-soundcloud-orange font-medium">
+                        Selected Plan: <span id="target-plan-name">None</span>
+                    </div>
+                    <a id="fb-upgrade-btn" href="https://www.facebook.com/profile.php?id=61590490534032" target="_blank" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 block text-center">
+                        <i class="fa-brands fa-facebook text-base"></i> Send Receipt on Facebook Messenger
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="max-w-6xl mx-auto px-4 py-8 text-center text-xs text-gray-500 border-t border-gray-800/80 mt-12 space-y-3">
+        <div class="flex items-center justify-center gap-4 flex-wrap">
+            <a href="https://www.facebook.com/profile.php?id=61590490534032" target="_blank" class="text-gray-400 hover:text-blue-500 transition flex items-center gap-1.5">
+                <i class="fa-brands fa-facebook text-sm"></i> Facebook
+            </a>
+            <span class="text-gray-700">•</span>
+            <a href="https://t.me/CerusAint" target="_blank" class="text-gray-400 hover:text-sky-400 transition flex items-center gap-1.5">
+                <i class="fa-brands fa-telegram text-sm"></i> Telegram: @Cerus Aint
+            </a>
+        </div>
+        <p>© 2026 JaySoundCloud. All rights reserved by Jay.</p>
+    </footer>
+
     <!-- JavaScript Application Logic -->
     <script>
         let supabaseClient = null;
         let currentUser = null;
+        let currentTier = 'free'; // 'free', 'starter', 'popular', 'premium'
         let currentTracks = [];
         let likedTracks = [];
         let currentIndex = -1;
         let isPlaying = false;
         let currentStreamUrl = '';
-        let authMode = 'signin'; // 'signin' or 'signup'
+        let authMode = 'signin';
 
         const audioElement = document.getElementById('audio-element');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -308,15 +469,11 @@
                     supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
                     checkAuthSession();
                 } else {
-                    console.warn('Supabase not configured. Running in local mode.');
-                    loadLocalLikedSongs();
+                    console.warn('Supabase not configured.');
                 }
             } catch (e) {
                 console.error('Failed to load config:', e);
-                loadLocalLikedSongs();
             }
-
-            searchSoundCloud('lofi chill');
         });
 
         // Supabase Auth Handling
@@ -325,15 +482,74 @@
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 currentUser = session.user;
+                await fetchUserTier(currentUser.email);
                 updateAuthUI();
+                showAppUI();
                 loadLikedSongs();
             }
-            supabaseClient.auth.onAuthStateChange((_event, session) => {
+            supabaseClient.auth.onAuthStateChange(async (_event, session) => {
                 currentUser = session ? session.user : null;
-                updateAuthUI();
-                if (currentUser) loadLikedSongs();
-                else loadLocalLikedSongs();
+                if (currentUser) {
+                    await fetchUserTier(currentUser.email);
+                    updateAuthUI();
+                    showAppUI();
+                    loadLikedSongs();
+                } else {
+                    currentTier = 'free';
+                    updateAuthUI();
+                    hideAppUI();
+                }
             });
+        }
+
+        async function fetchUserTier(email) {
+            if (!supabaseClient || !email) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('subscriptions')
+                    .select('tier')
+                    .eq('email', email)
+                    .single();
+
+                if (data && data.tier) {
+                    currentTier = data.tier.toLowerCase();
+                } else {
+                    currentTier = 'free';
+                }
+            } catch (e) {
+                console.log('No subscription record found, defaulting to free/starter check or local');
+                currentTier = 'free';
+            }
+            updateTierBadgeUI();
+        }
+
+        function updateTierBadgeUI() {
+            const badge = document.getElementById('user-tier-badge');
+            badge.textContent = `${currentTier.toUpperCase()} TIER`;
+            if (currentTier === 'premium') {
+                badge.className = 'text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium border border-amber-500/30';
+            } else if (currentTier === 'popular') {
+                badge.className = 'text-xs bg-soundcloud-orange/20 text-soundcloud-orange px-2 py-0.5 rounded-full font-medium border border-soundcloud-orange/30';
+            } else if (currentTier === 'starter') {
+                badge.className = 'text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-medium border border-blue-500/30';
+            } else {
+                badge.className = 'text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-medium border border-gray-700';
+            }
+        }
+
+        function showAppUI() {
+            document.getElementById('auth-wall').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            document.getElementById('nav-tabs').classList.remove('hidden');
+            document.getElementById('player-bar').classList.remove('hidden');
+            searchSoundCloud('lofi chill');
+        }
+
+        function hideAppUI() {
+            document.getElementById('auth-wall').classList.remove('hidden');
+            document.getElementById('app-content').classList.add('hidden');
+            document.getElementById('nav-tabs').classList.add('hidden');
+            document.getElementById('player-bar').classList.add('hidden');
         }
 
         function updateAuthUI() {
@@ -343,7 +559,7 @@
                     <div class="flex items-center gap-3">
                         <div class="text-right hidden sm:block">
                             <p class="text-xs font-medium text-white truncate max-w-[140px]">${currentUser.email}</p>
-                            <p class="text-[10px] text-green-400">Connected</p>
+                            <p class="text-[10px] text-green-400">Online</p>
                         </div>
                         <button onclick="handleSignOut()" class="bg-gray-800 hover:bg-red-500/20 hover:text-red-400 text-gray-300 px-3 py-2 rounded-xl text-xs font-medium transition border border-gray-700" title="Sign Out">
                             <i class="fa-solid fa-right-from-bracket"></i>
@@ -361,7 +577,7 @@
 
         function openAuthModal(mode) {
             if (!supabaseClient) {
-                alert('Supabase is not configured! Please add your SUPABASE_URL and SUPABASE_ANON_KEY to your .env file or Render environment variables.');
+                alert('Supabase is not configured! Please add your Supabase credentials.');
                 return;
             }
             authMode = mode;
@@ -389,13 +605,13 @@
 
             if (authMode === 'signin') {
                 title.textContent = 'Sign In to JaySoundCloud';
-                sub.textContent = 'Sync your liked songs & playlists';
+                sub.textContent = 'Access your music & playlists';
                 btn.textContent = 'Sign In';
                 switchText.textContent = "Don't have an account?";
                 switchBtn.textContent = 'Sign Up';
             } else {
                 title.textContent = 'Create an Account';
-                sub.textContent = 'Start saving your favorite tracks';
+                sub.textContent = 'Start streaming SoundCloud music';
                 btn.textContent = 'Sign Up';
                 switchText.textContent = 'Already have an account?';
                 switchBtn.textContent = 'Sign In';
@@ -416,15 +632,17 @@
                 if (authMode === 'signup') {
                     const { data, error } = await supabaseClient.auth.signUp({ email, password });
                     if (error) throw error;
-                    successEl.textContent = 'Sign up successful! Check your email or sign in.';
+                    successEl.textContent = 'Sign up successful! Please check your email or sign in.';
                     successEl.classList.remove('hidden');
                     setTimeout(() => closeAuthModal(), 2000);
                 } else {
                     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
                     if (error) throw error;
                     currentUser = data.user;
+                    await fetchUserTier(currentUser.email);
                     updateAuthUI();
                     closeAuthModal();
+                    showAppUI();
                     loadLikedSongs();
                 }
             } catch (err) {
@@ -438,14 +656,41 @@
                 await supabaseClient.auth.signOut();
             }
             currentUser = null;
+            currentTier = 'free';
             updateAuthUI();
-            likedTracks = [];
-            updateLikedCount();
-            switchTab('search');
+            hideAppUI();
+        }
+
+        // Pricing Modal
+        function openPricingModal() {
+            document.getElementById('pricing-modal').classList.remove('hidden');
+        }
+
+        function closePricingModal() {
+            document.getElementById('pricing-modal').classList.add('hidden');
+        }
+
+        function selectPlan(planName, priceStr) {
+            const notice = document.getElementById('selected-plan-notice');
+            const targetName = document.getElementById('target-plan-name');
+            const fbBtn = document.getElementById('fb-upgrade-btn');
+
+            notice.classList.remove('hidden');
+            targetName.textContent = `${planName} (${priceStr})`;
+
+            const userEmail = currentUser ? currentUser.email : 'my-email@gmail.com';
+            const msg = encodeURIComponent(`Hello Jay! I paid for the ${planName} Plan (${priceStr}). My Gmail is: ${userEmail}. Here is my GCash screenshot receipt:`);
+            fbBtn.href = `https://www.facebook.com/profile.php?id=61590490534032&text=${msg}`;
         }
 
         // Tab Navigation
         function switchTab(tab) {
+            if (currentTier === 'starter' && tab === 'liked') {
+                alert('Starter Plan (₱9) does not include Liked Songs or Playlists. Please upgrade to Popular (₱29) or Premium (₱49)!');
+                openPricingModal();
+                return;
+            }
+
             const searchView = document.getElementById('view-search');
             const likedView = document.getElementById('view-liked');
             const searchBtn = document.getElementById('tab-search-btn');
@@ -507,17 +752,14 @@
             } catch (error) {
                 console.error('Search error:', error);
                 loadingState.classList.add('hidden');
-                errorState.classList.add('hidden');
-                // Fallback demo data if offline/error
-                currentTracks = [
-                    { id: 1, title: 'Lofi Study Beats', user: 'JayBeats', duration: '3:20', plays: '1.2M', url: 'https://soundcloud.com/example/lofi' }
-                ];
-                renderTracks();
+                errorState.classList.remove('hidden');
             }
         }
 
-        // Liked Songs Management (Supabase DB or LocalStorage)
+        // Liked Songs Management
         async function loadLikedSongs() {
+            if (currentTier === 'starter') return;
+
             const likedLoading = document.getElementById('liked-loading');
             const likedEmpty = document.getElementById('liked-empty');
             const likedGrid = document.getElementById('liked-grid');
@@ -534,28 +776,20 @@
                         .eq('user_id', currentUser.id)
                         .order('created_at', { ascending: false });
 
-                    if (error) {
-                        // If table doesn't exist yet, handle gracefully
-                        console.warn('Supabase table liked_songs query note:', error.message);
-                        loadLocalLikedSongs();
-                        return;
+                    if (!error && data) {
+                        likedTracks = data.map(item => ({
+                            id: item.track_id,
+                            title: item.title,
+                            user: item.artist,
+                            duration: item.duration,
+                            plays: item.plays,
+                            url: item.url,
+                            thumbnail: item.thumbnail
+                        }));
                     }
-
-                    likedTracks = data ? data.map(item => ({
-                        id: item.track_id,
-                        title: item.title,
-                        user: item.artist,
-                        duration: item.duration,
-                        plays: item.plays,
-                        url: item.url,
-                        thumbnail: item.thumbnail
-                    })) : [];
                 } catch (err) {
-                    console.error('Error loading liked songs from Supabase:', err);
-                    loadLocalLikedSongs();
+                    console.error('Error loading liked songs:', err);
                 }
-            } else {
-                loadLocalLikedSongs();
             }
 
             likedLoading.classList.add('hidden');
@@ -563,25 +797,19 @@
             renderLikedTracks();
         }
 
-        function loadLocalLikedSongs() {
-            try {
-                const stored = localStorage.getItem('jay_liked_songs');
-                likedTracks = stored ? JSON.parse(stored) : [];
-            } catch (e) {
-                likedTracks = [];
-            }
-            updateLikedCount();
-            renderLikedTracks();
-        }
-
         async function toggleLike(trackIndex) {
+            if (currentTier === 'starter' || currentTier === 'free') {
+                alert('Liked Songs & Playlists are available on Popular (₱29) and Premium (₱49) plans!');
+                openPricingModal();
+                return;
+            }
+
             const track = currentTracks[trackIndex];
             if (!track) return;
 
             const isLiked = isTrackLiked(track.url);
 
             if (isLiked) {
-                // Remove like
                 likedTracks = likedTracks.filter(t => t.url !== track.url);
                 if (supabaseClient && currentUser) {
                     try {
@@ -590,12 +818,9 @@
                             .delete()
                             .eq('user_id', currentUser.id)
                             .eq('url', track.url);
-                    } catch (e) {
-                        console.error('Supabase delete error:', e);
-                    }
+                    } catch (e) {}
                 }
             } else {
-                // Add like
                 const trackData = {
                     track_id: track.id || Date.now(),
                     title: track.title,
@@ -622,16 +847,10 @@
                                 thumbnail: trackData.thumbnail
                             }]);
                     } catch (e) {
-                        console.error('Supabase insert error (Ensure liked_songs table exists):', e);
-                        alert('Note: To sync liked songs with Supabase database, please create a `liked_songs` table with columns: user_id, track_id, title, artist, duration, plays, url, thumbnail.');
+                        alert('Note: Ensure `liked_songs` table exists in Supabase.');
                     }
                 }
             }
-
-            // Save local fallback
-            try {
-                localStorage.setItem('jay_liked_songs', JSON.stringify(likedTracks));
-            } catch (e) {}
 
             updateLikedCount();
             renderTracks();
@@ -649,10 +868,6 @@
                         .eq('url', url);
                 } catch (e) {}
             }
-            try {
-                localStorage.setItem('jay_liked_songs', JSON.stringify(likedTracks));
-            } catch (e) {}
-
             updateLikedCount();
             renderTracks();
             renderLikedTracks();
@@ -673,6 +888,9 @@
             currentTracks.forEach((track, index) => {
                 const isCurrent = currentIndex === index;
                 const liked = isTrackLiked(track.url);
+                const canLike = currentTier !== 'starter' && currentTier !== 'free';
+                const canDownload = currentTier === 'premium';
+
                 const card = document.createElement('div');
                 card.className = `bg-soundcloud-card border ${isCurrent ? 'border-soundcloud-orange ring-1 ring-soundcloud-orange' : 'border-gray-800'} rounded-2xl p-4 flex flex-col justify-between hover:border-gray-600 transition group`;
                 
@@ -686,7 +904,7 @@
                                 <h3 class="text-sm font-semibold text-white truncate" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</h3>
                                 <p class="text-xs text-gray-400 truncate mt-0.5"><i class="fa-solid fa-user-pen mr-1 text-gray-500"></i>${escapeHtml(track.user)}</p>
                             </div>
-                            <button onclick="toggleLike(${index})" class="text-gray-400 hover:text-red-500 transition text-lg p-1" title="${liked ? 'Unlike' : 'Like'}">
+                            <button onclick="toggleLike(${index})" class="${canLike ? 'text-gray-400 hover:text-red-500' : 'text-gray-600 cursor-not-allowed'} transition text-lg p-1" title="${canLike ? (liked ? 'Unlike' : 'Like') : 'Upgrade to Popular/Premium for Liked Songs'}">
                                 <i class="${liked ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
                             </button>
                         </div>
@@ -695,13 +913,20 @@
                             <span><i class="fa-solid fa-headphones mr-1"></i>${track.plays || 'N/A'}</span>
                         </div>
                     </div>
-                    <button 
-                        onclick="playTrack(${index})"
-                        class="w-full py-2 px-4 rounded-xl font-medium text-xs transition flex items-center justify-center gap-2 ${isCurrent && isPlaying ? 'bg-soundcloud-orange text-white shadow-lg shadow-soundcloud-orange/20' : 'bg-gray-800 hover:bg-soundcloud-orange hover:text-white text-gray-200'}"
-                    >
-                        <i class="fa-solid ${isCurrent && isPlaying ? 'fa-pause' : 'fa-play'}"></i>
-                        <span>${isCurrent && isPlaying ? 'Playing' : 'Play Track'}</span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            onclick="playTrack(${index})"
+                            class="flex-1 py-2 px-4 rounded-xl font-medium text-xs transition flex items-center justify-center gap-2 ${isCurrent && isPlaying ? 'bg-soundcloud-orange text-white shadow-lg shadow-soundcloud-orange/20' : 'bg-gray-800 hover:bg-soundcloud-orange hover:text-white text-gray-200'}"
+                        >
+                            <i class="fa-solid ${isCurrent && isPlaying ? 'fa-pause' : 'fa-play'}"></i>
+                            <span>${isCurrent && isPlaying ? 'Playing' : 'Play'}</span>
+                        </button>
+                        ${canDownload ? `
+                            <button onclick="downloadTrack('${track.url}', '${escapeHtml(track.title)}')" class="py-2 px-3 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white rounded-xl text-xs transition border border-amber-500/30" title="Download MP3 (Premium)">
+                                <i class="fa-solid fa-download"></i>
+                            </button>
+                        ` : ''}
+                    </div>
                 `;
                 resultsGrid.appendChild(card);
             });
@@ -720,6 +945,7 @@
             }
 
             likedTracks.forEach((track, index) => {
+                const canDownload = currentTier === 'premium';
                 const card = document.createElement('div');
                 card.className = `bg-soundcloud-card border border-gray-800 rounded-2xl p-4 flex flex-col justify-between hover:border-gray-600 transition group`;
                 
@@ -742,16 +968,48 @@
                             <span><i class="fa-solid fa-headphones mr-1"></i>${track.plays || 'N/A'}</span>
                         </div>
                     </div>
-                    <button 
-                        onclick="playLikedTrack(${index})"
-                        class="w-full py-2 px-4 rounded-xl font-medium text-xs transition flex items-center justify-center gap-2 bg-gray-800 hover:bg-soundcloud-orange hover:text-white text-gray-200"
-                    >
-                        <i class="fa-solid fa-play"></i>
-                        <span>Play Liked Track</span>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button 
+                            onclick="playLikedTrack(${index})"
+                            class="flex-1 py-2 px-4 rounded-xl font-medium text-xs transition flex items-center justify-center gap-2 bg-gray-800 hover:bg-soundcloud-orange hover:text-white text-gray-200"
+                        >
+                            <i class="fa-solid fa-play"></i>
+                            <span>Play</span>
+                        </button>
+                        ${canDownload ? `
+                            <button onclick="downloadTrack('${track.url}', '${escapeHtml(track.title)}')" class="py-2 px-3 bg-amber-500/20 hover:bg-amber-500 text-amber-400 hover:text-white rounded-xl text-xs transition border border-amber-500/30" title="Download MP3 (Premium)">
+                                <i class="fa-solid fa-download"></i>
+                            </button>
+                        ` : ''}
+                    </div>
                 `;
                 likedGrid.appendChild(card);
             });
+        }
+
+        async function downloadTrack(soundcloudUrl, title) {
+            if (currentTier !== 'premium') {
+                alert('Direct MP3 Download is a Premium feature (₱49)!');
+                openPricingModal();
+                return;
+            }
+
+            alert(`Preparing download for "${title}"...`);
+            try {
+                const res = await fetch('/api/downloader/soundcloud-v2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: soundcloudUrl })
+                });
+                const data = await res.json();
+                if (data.success && data.result && data.result.url) {
+                    window.open(data.result.url, '_blank');
+                } else {
+                    alert('Could not retrieve direct download link.');
+                }
+            } catch (err) {
+                alert('Download failed.');
+            }
         }
 
         async function playTrack(index) {
@@ -763,7 +1021,6 @@
 
         async function playLikedTrack(index) {
             if (index < 0 || index >= likedTracks.length) return;
-            // Temporarily set currentTracks to likedTracks so next/prev works smoothly
             currentTracks = likedTracks;
             currentIndex = index;
             const track = likedTracks[currentIndex];
