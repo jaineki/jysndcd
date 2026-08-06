@@ -50,7 +50,7 @@
                     <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                         JaySoundCloud <span id="user-tier-badge" class="text-xs bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full font-medium border border-gray-700">Free Tier</span>
                     </h1>
-                    <p class="text-xs text-gray-400">Stream & Cloud Playlists</p>
+                    <p id="daily-limit-status" class="text-xs text-gray-400">Daily limit: 5 plays</p>
                 </div>
             </div>
 
@@ -88,7 +88,7 @@
                 <i class="fa-brands fa-soundcloud"></i>
             </div>
             <h2 class="text-xl font-bold text-white mb-2">Welcome to JaySoundCloud</h2>
-            <p class="text-xs text-gray-400 mb-6">Please sign in or create an account to start searching, streaming, and saving your favorite tracks.</p>
+            <p class="text-xs text-gray-400 mb-6">Please sign in or create an account to start searching, streaming, and saving your favorite tracks. Free users get 5 free plays daily!</p>
             <div class="flex gap-3">
                 <button onclick="openAuthModal('signin')" class="flex-1 py-3 bg-soundcloud-orange hover:bg-orange-600 text-white rounded-xl font-medium text-sm transition shadow-lg shadow-soundcloud-orange/20">
                     Sign In
@@ -404,16 +404,50 @@
 
         function updateTierBadgeUI() {
             const badge = document.getElementById('user-tier-badge');
+            const limitStatus = document.getElementById('daily-limit-status');
             badge.textContent = `${currentTier.toUpperCase()} TIER`;
+            
             if (currentTier === 'premium') {
                 badge.className = 'text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium border border-amber-500/30';
+                limitStatus.textContent = 'Unlimited access & downloads';
             } else if (currentTier === 'popular') {
                 badge.className = 'text-xs bg-soundcloud-orange/20 text-soundcloud-orange px-2 py-0.5 rounded-full font-medium border border-soundcloud-orange/30';
+                limitStatus.textContent = 'Unlimited music & playlists';
             } else if (currentTier === 'starter') {
                 badge.className = 'text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full font-medium border border-blue-500/30';
+                limitStatus.textContent = 'Unlimited music streaming';
             } else {
                 badge.className = 'text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full font-medium border border-gray-700';
+                const remaining = getRemainingFreePlays();
+                limitStatus.textContent = `Daily limit: ${remaining}/5 plays remaining`;
             }
+        }
+
+        // Daily Usage Limit for Free Tier (5 plays daily)
+        function getTodayKey() {
+            const d = new Date();
+            return `jay_free_plays_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
+        }
+
+        function getRemainingFreePlays() {
+            if (currentTier !== 'free') return 999;
+            const key = getTodayKey();
+            const used = parseInt(localStorage.getItem(key) || '0', 10);
+            return Math.max(0, 5 - used);
+        }
+
+        function checkAndIncrementFreePlay() {
+            if (currentTier !== 'free') return true;
+            const key = getTodayKey();
+            const used = parseInt(localStorage.getItem(key) || '0', 10);
+            if (used >= 5) {
+                alert('You have reached your daily limit of 5 free plays! Please upgrade to Starter (₱9), Popular (₱29), or Premium (₱49) for unlimited access.');
+                window.location.href = '/upgrade.html';
+                return false;
+            }
+            localStorage.setItem(key, used + 1);
+            updateTierBadgeUI();
+            return true;
         }
 
         function showAppUI() {
@@ -870,6 +904,7 @@
         }
 
         async function playTrack(index) {
+            if (!checkAndIncrementFreePlay()) return;
             if (index < 0 || index >= currentTracks.length) return;
             currentIndex = index;
             const track = currentTracks[currentIndex];
@@ -877,6 +912,7 @@
         }
 
         async function playLikedTrack(index) {
+            if (!checkAndIncrementFreePlay()) return;
             if (index < 0 || index >= likedTracks.length) return;
             currentTracks = likedTracks;
             currentIndex = index;
