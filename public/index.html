@@ -386,7 +386,7 @@
             if (!supabaseClient || !email) return;
             try {
                 const { data, error } = await supabaseClient
-                    .from('subscriptions')
+                    .from('subcription')
                     .select('tier')
                     .eq('email', email)
                     .single();
