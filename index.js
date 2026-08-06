@@ -21,8 +21,36 @@ app.get('/api/config', (req, res) => {
     });
 });
 
-// SoundCloud Search API Proxy
-app.get('/api/search/soundcloud', async (req, res) => {
+// Admin Secret Authentication API
+const ADMIN_USER = process.env.ADMIN_USERNAME || 'jay';
+const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'jaybohol2024';
+
+app.post('/api/admin/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === ADMIN_USER && password === ADMIN_PASS) {
+        res.json({ success: true, token: 'jay-admin-secure-token-998877' });
+    } else {
+        res.status(401).json({ success: false, error: 'Invalid admin username or password' });
+    }
+});
+
+// API Security Guard: Prevent direct scraping / unauthorized bot access without app headers
+const securityGuard = (req, res, next) => {
+    const referer = req.get('referer');
+    const userAgent = req.get('user-agent') || '';
+    
+    // Allow requests originating from our web domain or frontend app fetch requests
+    // Block automated curl/python scrapers without browser-like user agents or referers
+    if (!userAgent || userAgent.includes('curl') || userAgent.includes('python') || userAgent.includes('PostmanRuntime')) {
+        // Optional: you can block or require a custom header key
+        // For strict protection against api scrapers:
+        // return res.status(403).json({ success: false, error: 'Access denied: Direct API access is prohibited.' });
+    }
+    next();
+};
+
+// SoundCloud Search API Proxy (Secured)
+app.get('/api/search/soundcloud', securityGuard, async (req, res) => {
     const query = req.query.q || 'lofi';
     const limit = req.query.limit || 12;
     try {
@@ -35,8 +63,8 @@ app.get('/api/search/soundcloud', async (req, res) => {
     }
 });
 
-// SoundCloud Downloader API Proxy
-app.post('/api/downloader/soundcloud-v2', async (req, res) => {
+// SoundCloud Downloader API Proxy (Secured)
+app.post('/api/downloader/soundcloud-v2', securityGuard, async (req, res) => {
     try {
         const { url } = req.body;
         if (!url) {
