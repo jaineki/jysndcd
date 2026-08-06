@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JaySoundCloud - Stream & Liked Songs</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        soundcloud: {
+                            orange: '#ff5500',
+                            dark: '#121212',
+                            card: '#1e1e1e',
+                            hover: '#2a2a2a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff5500; }
+    </style>
+</head>
+<body class="bg-soundcloud-dark text-gray-100 min-h-screen flex flex-col justify-between selection:bg-soundcloud-orange selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 bg-soundcloud-dark/95 backdrop-blur-md border-b border-gray-800">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <!-- Brand -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('search')">
+                <div class="w-10 h-10 rounded-xl bg-soundcloud-orange flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-soundcloud-orange/30">
+                    <i class="fa-brands fa-soundcloud"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        JaySoundCloud <span class="text-xs bg-soundcloud-orange/20 text-soundcloud-orange px-2 py-0.5 rounded-full font-medium">Pro</span>
+                    </h1>
+                    <p class="text-xs text-gray-400">Stream & Cloud Playlists</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs & Search -->
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <div class="flex items-center bg-soundcloud-card border border-gray-800 rounded-xl p-1">
+                    <button id="tab-search-btn" onclick="switchTab('search')" class="px-4 py-1.5 rounded-lg text-xs font-medium transition bg-soundcloud-orange text-white">
+                        <i class="fa-solid fa-magnifying-glass mr-1.5"></i> Search
+                    </button>
+                    <button id="tab-liked-btn" onclick="switchTab('liked')" class="px-4 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white">
+                        <i class="fa-solid fa-heart mr-1.5 text-red-500"></i> Liked Songs <span id="liked-count" class="ml-1 bg-gray-800 px-1.5 py-0.2 rounded-full text-[10px]">0</span>
+                    </button>
+                </div>
+
+                <!-- Auth Area -->
+                <div id="auth-area">
+                    <button onclick="openAuthModal('signin')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 border border-gray-700">
+                        <i class="fa-solid fa-user"></i> Sign In
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-8 mb-28">
+        
+        <!-- SEARCH VIEW -->
+        <div id="view-search" class="space-y-6">
+            <!-- Search Bar Form -->
+            <form id="search-form" onsubmit="handleSearch(event)" class="max-w-2xl mx-auto flex gap-2">
+                <div class="relative flex-1">
+                    <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        placeholder="Search songs, artists, or genres..." 
+                        value="lofi chill"
+                        class="w-full pl-11 pr-4 py-3 bg-soundcloud-card border border-gray-700 rounded-2xl text-sm focus:outline-none focus:border-soundcloud-orange focus:ring-1 focus:ring-soundcloud-orange transition shadow-inner"
+                        required
+                    >
+                </div>
+                <button 
+                    type="submit" 
+                    class="bg-soundcloud-orange hover:bg-orange-600 text-white px-6 py-3 rounded-2xl font-medium text-sm transition shadow-lg shadow-soundcloud-orange/25 flex items-center justify-center"
+                >
+                    Search
+                </button>
+            </form>
+
+            <!-- Quick Tags -->
+            <div class="flex items-center justify-center gap-2 flex-wrap pb-2">
+                <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mr-1">Trending:</span>
+                <button onclick="quickSearch('lofi hip hop')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Lofi Hip Hop</button>
+                <button onclick="quickSearch('phonk remix')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Phonk Remix</button>
+                <button onclick="quickSearch('deep house')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Deep House</button>
+                <button onclick="quickSearch('synthwave')" class="text-xs bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 px-3 py-1.5 rounded-xl transition">Synthwave</button>
+            </div>
+
+            <!-- Section Title -->
+            <div class="flex items-center justify-between pt-4">
+                <h2 id="section-title" class="text-base font-semibold text-white">Search Results</h2>
+                <span id="result-count" class="text-xs text-gray-400"></span>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden flex flex-col items-center justify-center py-20">
+                <div class="w-10 h-10 border-4 border-soundcloud-orange border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-sm text-gray-400">Searching SoundCloud tracks...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 p-6 rounded-2xl text-center my-8">
+                <i class="fa-solid fa-circle-exclamation text-2xl mb-2"></i>
+                <p id="error-message" class="text-sm font-medium">Failed to fetch tracks. Please try again.</p>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- LIKED SONGS VIEW -->
+        <div id="view-liked" class="hidden space-y-6">
+            <div class="flex items-center justify-between border-b border-gray-800 pb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-heart text-red-500"></i> Liked Songs Playlist
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-1">Your saved tracks synced with Supabase</p>
+                </div>
+                <button onclick="loadLikedSongs()" class="bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-700 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+            </div>
+
+            <div id="liked-loading" class="hidden flex flex-col items-center justify-center py-16">
+                <div class="w-8 h-8 border-3 border-soundcloud-orange border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p class="text-xs text-gray-400">Loading your liked songs...</p>
+            </div>
+
+            <div id="liked-empty" class="hidden bg-soundcloud-card border border-gray-800 rounded-2xl p-12 text-center my-8">
+                <div class="w-14 h-14 rounded-2xl bg-soundcloud-orange/10 text-soundcloud-orange flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <i class="fa-regular fa-heart"></i>
+                </div>
+                <h3 class="text-base font-semibold text-white mb-1">No liked songs yet</h3>
+                <p class="text-xs text-gray-400 max-w-sm mx-auto mb-6">Heart any track while searching to add it to your personal playlist.</p>
+                <button onclick="switchTab('search')" class="bg-soundcloud-orange hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-xs font-medium transition">
+                    Explore Tracks
+                </button>
+            </div>
+
+            <!-- Liked Grid -->
+            <div id="liked-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Sticky Audio Player Bar -->
+    <div id="player-bar" class="fixed bottom-0 left-0 right-0 z-50 bg-soundcloud-card/95 backdrop-blur-md border-t border-gray-800 shadow-2xl transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-col gap-2">
+            
+            <!-- Progress Bar -->
+            <div class="flex items-center gap-3 w-full">
+                <span id="current-time" class="text-xs text-gray-400 w-10 text-right">0:00</span>
+                <div class="flex-1 relative cursor-pointer group" onclick="seekAudio(event)">
+                    <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="bg-soundcloud-orange h-full w-0 transition-all duration-100"></div>
+                    </div>
+                </div>
+                <span id="total-duration" class="text-xs text-gray-400 w-10">0:00</span>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <!-- Track Info -->
+                <div class="flex items-center space-x-3 w-1/3 min-w-0">
+                    <div class="relative w-12 h-12 rounded-xl bg-gray-800 overflow-hidden flex-shrink-0 shadow">
+                        <img id="player-thumb" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=100&q=80" alt="Album Art" class="w-full h-full object-cover">
+                        <div id="player-loading" class="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center hidden">
+                            <div class="w-5 h-5 border-2 border-soundcloud-orange border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    </div>
+                    <div class="min-w-0">
+                        <h4 id="player-title" class="text-sm font-medium text-white truncate">Select a track to play</h4>
+                        <p id="player-artist" class="text-xs text-gray-400 truncate">JaySoundCloud</p>
+                    </div>
+                </div>
+
+                <!-- Player Controls -->
+                <div class="flex items-center space-x-4">
+                    <button onclick="previousTrack()" class="text-gray-400 hover:text-white transition text-lg">
+                        <i class="fa-solid fa-backward-step"></i>
+                    </button>
+                    <button id="play-pause-btn" onclick="togglePlayPause()" disabled class="w-12 h-12 rounded-full bg-soundcloud-orange hover:bg-orange-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white flex items-center justify-center text-lg shadow-lg shadow-soundcloud-orange/20 transition transform active:scale-95">
+                        <i id="play-icon" class="fa-solid fa-play ml-0.5"></i>
+                    </button>
+                    <button onclick="nextTrack()" class="text-gray-400 hover:text-white transition text-lg">
+                        <i class="fa-solid fa-forward-step"></i>
+                    </button>
+                </div>
+
+                <!-- Volume & Extra Controls -->
+                <div class="flex items-center space-x-3 w-1/3 justify-end">
+                    <button onclick="toggleMute()" class="text-gray-400 hover:text-white transition">
+                        <i id="volume-icon" class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <input 
+                        type="range" 
+                        id="volume-slider" 
+                        min="0" 
+                        max="1" 
+                        step="0.05" 
+                        value="1" 
+                        oninput="setVolume(this.value)"
+                        class="w-20 accent-soundcloud-orange cursor-pointer h-1.5 bg-gray-700 rounded-lg"
+                    >
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Audio Element -->
+    <audio id="audio-element" ontimeupdate="updateProgress()" onended="onTrackEnded()" onerror="handleAudioError()"></audio>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center hidden">
+        <div class="bg-soundcloud-card border border-gray-800 rounded-3xl w-full max-w-md p-8 relative shadow-2xl">
+            <button onclick="closeAuthModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="text-center mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-soundcloud-orange/10 text-soundcloud-orange flex items-center justify-center mx-auto mb-3 text-xl">
+                    <i class="fa-brands fa-soundcloud"></i>
+                </div>
+                <h3 id="auth-modal-title" class="text-lg font-bold text-white">Sign In to JaySoundCloud</h3>
+                <p id="auth-modal-subtitle" class="text-xs text-gray-400 mt-1">Sync your liked songs & playlists</p>
+            </div>
+
+            <div id="auth-error" class="hidden bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-xs mb-4"></div>
+            <div id="auth-success" class="hidden bg-green-500/10 border border-green-500/20 text-green-400 p-3 rounded-xl text-xs mb-4"></div>
+
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Email Address</label>
+                    <input type="email" id="auth-email" required class="w-full px-4 py-2.5 bg-soundcloud-dark border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-soundcloud-orange">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1.5">Password</label>
+                    <input type="password" id="auth-password" required minlength="6" class="w-full px-4 py-2.5 bg-soundcloud-dark border border-gray-700 rounded-xl text-sm focus:outline-none focus:border-soundcloud-orange">
+                </div>
+
+                <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-soundcloud-orange hover:bg-orange-600 text-white rounded-xl font-medium text-sm transition shadow-lg shadow-soundcloud-orange/20">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="text-center mt-6 text-xs text-gray-400">
+                <span id="auth-switch-text">Don't have an account?</span>
+                <button onclick="toggleAuthMode()" id="auth-switch-btn" class="text-soundcloud-orange font-medium ml-1 hover:underline">Sign Up</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        let supabaseClient = null;
+        let currentUser = null;
+        let currentTracks = [];
+        let likedTracks = [];
+        let currentIndex = -1;
+        let isPlaying = false;
+        let currentStreamUrl = '';
+        let authMode = 'signin'; // 'signin' or 'signup'
+
+        const audioElement = document.getElementById('audio-element');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const playerLoading = document.getElementById('player-loading');
+        const progressBar = document.getElementById('progress-bar');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalDurationEl = document.getElementById('total-duration');
+
+        // Initialize Supabase & App on Load
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/config');
+                const config = await res.json();
+                if (config.supabaseUrl && config.supabaseAnonKey && config.supabaseUrl !== 'https://your-supabase-project.supabase.co') {
+                    supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+                    checkAuthSession();
+                } else {
+                    console.warn('Supabase not configured. Running in local mode.');
+                    loadLocalLikedSongs();
+                }
+            } catch (e) {
+                console.error('Failed to load config:', e);
+                loadLocalLikedSongs();
+            }
+
+            searchSoundCloud('lofi chill');
+        });
+
+        // Supabase Auth Handling
+        async function checkAuthSession() {
+            if (!supabaseClient) return;
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                updateAuthUI();
+                loadLikedSongs();
+            }
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                currentUser = session ? session.user : null;
+                updateAuthUI();
+                if (currentUser) loadLikedSongs();
+                else loadLocalLikedSongs();
+            });
+        }
+
+        function updateAuthUI() {
+            const authArea = document.getElementById('auth-area');
+            if (currentUser) {
+                authArea.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="text-right hidden sm:block">
+                            <p class="text-xs font-medium text-white truncate max-w-[140px]">${currentUser.email}</p>
+                            <p class="text-[10px] text-green-400">Connected</p>
+                        </div>
+                        <button onclick="handleSignOut()" class="bg-gray-800 hover:bg-red-500/20 hover:text-red-400 text-gray-300 px-3 py-2 rounded-xl text-xs font-medium transition border border-gray-700" title="Sign Out">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                authArea.innerHTML = `
+                    <button onclick="openAuthModal('signin')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2 border border-gray-700">
+                        <i class="fa-solid fa-user"></i> Sign In
+                    </button>
+                `;
+            }
+        }
+
+        function openAuthModal(mode) {
+            if (!supabaseClient) {
+                alert('Supabase is not configured! Please add your SUPABASE_URL and SUPABASE_ANON_KEY to your .env file or Render environment variables.');
+                return;
+            }
+            authMode = mode;
+            document.getElementById('auth-error').classList.add('hidden');
+            document.getElementById('auth-success').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('hidden');
+            updateAuthModalUI();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'signin' ? 'signup' : 'signin';
+            updateAuthModalUI();
+        }
+
+        function updateAuthModalUI() {
+            const title = document.getElementById('auth-modal-title');
+            const sub = document.getElementById('auth-modal-subtitle');
+            const btn = document.getElementById('auth-submit-btn');
+            const switchText = document.getElementById('auth-switch-text');
+            const switchBtn = document.getElementById('auth-switch-btn');
+
+            if (authMode === 'signin') {
+                title.textContent = 'Sign In to JaySoundCloud';
+                sub.textContent = 'Sync your liked songs & playlists';
+                btn.textContent = 'Sign In';
+                switchText.textContent = "Don't have an account?";
+                switchBtn.textContent = 'Sign Up';
+            } else {
+                title.textContent = 'Create an Account';
+                sub.textContent = 'Start saving your favorite tracks';
+                btn.textContent = 'Sign Up';
+                switchText.textContent = 'Already have an account?';
+                switchBtn.textContent = 'Sign In';
+            }
+        }
+
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const errorEl = document.getElementById('auth-error');
+            const successEl = document.getElementById('auth-success');
+
+            errorEl.classList.add('hidden');
+            successEl.classList.add('hidden');
+
+            try {
+                if (authMode === 'signup') {
+                    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                    if (error) throw error;
+                    successEl.textContent = 'Sign up successful! Check your email or sign in.';
+                    successEl.classList.remove('hidden');
+                    setTimeout(() => closeAuthModal(), 2000);
+                } else {
+                    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    currentUser = data.user;
+                    updateAuthUI();
+                    closeAuthModal();
+                    loadLikedSongs();
+                }
+            } catch (err) {
+                errorEl.textContent = err.message;
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function handleSignOut() {
+            if (supabaseClient) {
+                await supabaseClient.auth.signOut();
+            }
+            currentUser = null;
+            updateAuthUI();
+            likedTracks = [];
+            updateLikedCount();
+            switchTab('search');
+        }
+
+        // Tab Navigation
+        function switchTab(tab) {
+            const searchView = document.getElementById('view-search');
+            const likedView = document.getElementById('view-liked');
+            const searchBtn = document.getElementById('tab-search-btn');
+            const likedBtn = document.getElementById('tab-liked-btn');
+
+            if (tab === 'search') {
+                searchView.classList.remove('hidden');
+                likedView.classList.add('hidden');
+                searchBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-medium transition bg-soundcloud-orange text-white';
+                likedBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white';
+            } else {
+                searchView.classList.add('hidden');
+                likedView.classList.remove('hidden');
+                likedBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-medium transition bg-soundcloud-orange text-white';
+                searchBtn.className = 'px-4 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white';
+                loadLikedSongs();
+            }
+        }
+
+        // SoundCloud Search
+        function handleSearch(e) {
+            e.preventDefault();
+            const query = document.getElementById('search-input').value.trim();
+            if (query) searchSoundCloud(query);
+        }
+
+        function quickSearch(query) {
+            document.getElementById('search-input').value = query;
+            searchSoundCloud(query);
+        }
+
+        async function searchSoundCloud(query) {
+            const loadingState = document.getElementById('loading-state');
+            const errorState = document.getElementById('error-state');
+            const resultsGrid = document.getElementById('results-grid');
+            const resultCount = document.getElementById('result-count');
+            const sectionTitle = document.getElementById('section-title');
+
+            sectionTitle.textContent = `Results for "${query}"`;
+            loadingState.classList.remove('hidden');
+            errorState.classList.add('hidden');
+            resultsGrid.innerHTML = '';
+            resultCount.textContent = '';
+
+            try {
+                const response = await fetch(`/api/search/soundcloud?q=${encodeURIComponent(query)}&limit=12`);
+                const data = await response.json();
+
+                loadingState.classList.add('hidden');
+
+                if (data.success && data.result && data.result.length > 0) {
+                    currentTracks = data.result;
+                    resultCount.textContent = `${currentTracks.length} tracks found`;
+                    renderTracks();
+                } else {
+                    errorState.classList.remove('hidden');
+                    document.getElementById('error-message').textContent = 'No tracks found for your search. Try another keyword.';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                loadingState.classList.add('hidden');
+                errorState.classList.add('hidden');
+                // Fallback demo data if offline/error
+                currentTracks = [
+                    { id: 1, title: 'Lofi Study Beats', user: 'JayBeats', duration: '3:20', plays: '1.2M', url: 'https://soundcloud.com/example/lofi' }
+                ];
+                renderTracks();
+            }
+        }
+
+        // Liked Songs Management (Supabase DB or LocalStorage)
+        async function loadLikedSongs() {
+            const likedLoading = document.getElementById('liked-loading');
+            const likedEmpty = document.getElementById('liked-empty');
+            const likedGrid = document.getElementById('liked-grid');
+
+            likedLoading.classList.remove('hidden');
+            likedEmpty.classList.add('hidden');
+            likedGrid.innerHTML = '';
+
+            if (supabaseClient && currentUser) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('liked_songs')
+                        .select('*')
+                        .eq('user_id', currentUser.id)
+                        .order('created_at', { ascending: false });
+
+                    if (error) {
+                        // If table doesn't exist yet, handle gracefully
+                        console.warn('Supabase table liked_songs query note:', error.message);
+                        loadLocalLikedSongs();
+                        return;
+                    }
+
+                    likedTracks = data ? data.map(item => ({
+                        id: item.track_id,
+                        title: item.title,
+                        user: item.artist,
+                        duration: item.duration,
+                        plays: item.plays,
+                        url: item.url,
+                        thumbnail: item.thumbnail
+                    })) : [];
+                } catch (err) {
+                    console.error('Error loading liked songs from Supabase:', err);
+                    loadLocalLikedSongs();
+                }
+            } else {
+                loadLocalLikedSongs();
+            }
+
+            likedLoading.classList.add('hidden');
+            updateLikedCount();
+            renderLikedTracks();
+        }
+
+        function loadLocalLikedSongs() {
+            try {
+                const stored = localStorage.getItem('jay_liked_songs');
+                likedTracks = stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                likedTracks = [];
+            }
+            updateLikedCount();
+            renderLikedTracks();
+        }
+
+        async function toggleLike(trackIndex) {
+            const track = currentTracks[trackIndex];
+            if (!track) return;
+
+            const isLiked = isTrackLiked(track.url);
+
+            if (isLiked) {
+                // Remove like
+                likedTracks = likedTracks.filter(t => t.url !== track.url);
+                if (supabaseClient && currentUser) {
+                    try {
+                        await supabaseClient
+                            .from('liked_songs')
+                            .delete()
+                            .eq('user_id', currentUser.id)
+                            .eq('url', track.url);
+                    } catch (e) {
+                        console.error('Supabase delete error:', e);
+                    }
+                }
+            } else {
+                // Add like
+                const trackData = {
+                    track_id: track.id || Date.now(),
+                    title: track.title,
+                    artist: track.user,
+                    duration: track.duration,
+                    plays: track.plays,
+                    url: track.url,
+                    thumbnail: track.thumbnail || ''
+                };
+                likedTracks.unshift(trackData);
+
+                if (supabaseClient && currentUser) {
+                    try {
+                        await supabaseClient
+                            .from('liked_songs')
+                            .insert([{
+                                user_id: currentUser.id,
+                                track_id: String(trackData.track_id),
+                                title: trackData.title,
+                                artist: trackData.artist,
+                                duration: trackData.duration,
+                                plays: trackData.plays,
+                                url: trackData.url,
+                                thumbnail: trackData.thumbnail
+                            }]);
+                    } catch (e) {
+                        console.error('Supabase insert error (Ensure liked_songs table exists):', e);
+                        alert('Note: To sync liked songs with Supabase database, please create a `liked_songs` table with columns: user_id, track_id, title, artist, duration, plays, url, thumbnail.');
+                    }
+                }
+            }
+
+            // Save local fallback
+            try {
+                localStorage.setItem('jay_liked_songs', JSON.stringify(likedTracks));
+            } catch (e) {}
+
+            updateLikedCount();
+            renderTracks();
+            renderLikedTracks();
+        }
+
+        async function removeLikedSong(url) {
+            likedTracks = likedTracks.filter(t => t.url !== url);
+            if (supabaseClient && currentUser) {
+                try {
+                    await supabaseClient
+                        .from('liked_songs')
+                        .delete()
+                        .eq('user_id', currentUser.id)
+                        .eq('url', url);
+                } catch (e) {}
+            }
+            try {
+                localStorage.setItem('jay_liked_songs', JSON.stringify(likedTracks));
+            } catch (e) {}
+
+            updateLikedCount();
+            renderTracks();
+            renderLikedTracks();
+        }
+
+        function isTrackLiked(url) {
+            return likedTracks.some(t => t.url === url);
+        }
+
+        function updateLikedCount() {
+            document.getElementById('liked-count').textContent = likedTracks.length;
+        }
+
+        function renderTracks() {
+            const resultsGrid = document.getElementById('results-grid');
+            resultsGrid.innerHTML = '';
+
+            currentTracks.forEach((track, index) => {
+                const isCurrent = currentIndex === index;
+                const liked = isTrackLiked(track.url);
+                const card = document.createElement('div');
+                card.className = `bg-soundcloud-card border ${isCurrent ? 'border-soundcloud-orange ring-1 ring-soundcloud-orange' : 'border-gray-800'} rounded-2xl p-4 flex flex-col justify-between hover:border-gray-600 transition group`;
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-soundcloud-orange/20 to-orange-500/10 flex items-center justify-center text-soundcloud-orange font-bold text-lg flex-shrink-0">
+                                <i class="fa-solid fa-music"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-sm font-semibold text-white truncate" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</h3>
+                                <p class="text-xs text-gray-400 truncate mt-0.5"><i class="fa-solid fa-user-pen mr-1 text-gray-500"></i>${escapeHtml(track.user)}</p>
+                            </div>
+                            <button onclick="toggleLike(${index})" class="text-gray-400 hover:text-red-500 transition text-lg p-1" title="${liked ? 'Unlike' : 'Like'}">
+                                <i class="${liked ? 'fa-solid fa-heart text-red-500' : 'fa-regular fa-heart'}"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-4 text-xs text-gray-400 mb-4 px-1">
+                            <span><i class="fa-regular fa-clock mr-1"></i>${track.duration || 'N/A'}</span>
+                            <span><i class="fa-solid fa-headphones mr-1"></i>${track.plays || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <button 
+                        onclick="playTrack(${index})"
+                        class="w-full py-2 px-4 rounded-xl font-medium text-xs transition flex items-center justify-center gap-2 ${isCurrent && isPlaying ? 'bg-soundcloud-orange text-white shadow-lg shadow-soundcloud-orange/20' : 'bg-gray-800 hover:bg-soundcloud-orange hover:text-white text-gray-200'}"
+                    >
+                        <i class="fa-solid ${isCurrent && isPlaying ? 'fa-pause' : 'fa-play'}"></i>
+                        <span>${isCurrent && isPlaying ? 'Playing' : 'Play Track'}</span>
+                    </button>
+                `;
+                resultsGrid.appendChild(card);
+            });
+        }
+
+        function renderLikedTracks() {
+            const likedGrid = document.getElementById('liked-grid');
+            const likedEmpty = document.getElementById('liked-empty');
+            likedGrid.innerHTML = '';
+
+            if (likedTracks.length === 0) {
+                likedEmpty.classList.remove('hidden');
+                return;
+            } else {
+                likedEmpty.classList.add('hidden');
+            }
+
+            likedTracks.forEach((track, index) => {
+                const card = document.createElement('div');
+                card.className = `bg-soundcloud-card border border-gray-800 rounded-2xl p-4 flex flex-col justify-between hover:border-gray-600 transition group`;
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-start justify-between gap-3 mb-3">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500/20 to-orange-500/10 flex items-center justify-center text-red-500 font-bold text-lg flex-shrink-0">
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-sm font-semibold text-white truncate" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</h3>
+                                <p class="text-xs text-gray-400 truncate mt-0.5"><i class="fa-solid fa-user-pen mr-1 text-gray-500"></i>${escapeHtml(track.user)}</p>
+                            </div>
+                            <button onclick="removeLikedSong('${track.url}')" class="text-red-500 hover:text-red-400 transition text-sm p-1" title="Remove from Liked">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-4 text-xs text-gray-400 mb-4 px-1">
+                            <span><i class="fa-regular fa-clock mr-1"></i>${track.duration || 'N/A'}</span>
+                            <span><i class="fa-solid fa-headphones mr-1"></i>${track.plays || 'N/A'}</span>
+                        </div>
+                    </div>
+                    <button 
+                        onclick="playLikedTrack(${index})"
+                        class="w-full py-2 px-4 rounded-xl font-medium text-xs transition flex items-center justify-center gap-2 bg-gray-800 hover:bg-soundcloud-orange hover:text-white text-gray-200"
+                    >
+                        <i class="fa-solid fa-play"></i>
+                        <span>Play Liked Track</span>
+                    </button>
+                `;
+                likedGrid.appendChild(card);
+            });
+        }
+
+        async function playTrack(index) {
+            if (index < 0 || index >= currentTracks.length) return;
+            currentIndex = index;
+            const track = currentTracks[currentIndex];
+            await streamAndPlayTrack(track);
+        }
+
+        async function playLikedTrack(index) {
+            if (index < 0 || index >= likedTracks.length) return;
+            // Temporarily set currentTracks to likedTracks so next/prev works smoothly
+            currentTracks = likedTracks;
+            currentIndex = index;
+            const track = likedTracks[currentIndex];
+            await streamAndPlayTrack(track);
+        }
+
+        async function streamAndPlayTrack(track) {
+            document.getElementById('player-title').textContent = track.title;
+            document.getElementById('player-artist').textContent = track.user;
+            if (track.thumbnail) {
+                document.getElementById('player-thumb').src = track.thumbnail;
+            }
+            playPauseBtn.disabled = false;
+            playerLoading.classList.remove('hidden');
+
+            renderTracks();
+
+            try {
+                const res = await fetch('/api/downloader/soundcloud-v2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: track.url })
+                });
+                const data = await res.json();
+
+                playerLoading.classList.add('hidden');
+
+                if (data.success && data.result && data.result.url) {
+                    currentStreamUrl = data.result.url;
+                    if (data.result.thumbnail) {
+                        document.getElementById('player-thumb').src = data.result.thumbnail;
+                    }
+                    audioElement.src = currentStreamUrl;
+                    audioElement.play();
+                    isPlaying = true;
+                    updatePlayPauseUI();
+                } else {
+                    alert('Could not retrieve streaming URL for this track.');
+                }
+            } catch (err) {
+                console.error('Downloader error:', err);
+                playerLoading.classList.add('hidden');
+                alert('Error fetching stream URL from API.');
+            }
+        }
+
+        function togglePlayPause() {
+            if (!audioElement.src) {
+                if (currentTracks.length > 0) playTrack(0);
+                return;
+            }
+
+            if (isPlaying) {
+                audioElement.pause();
+                isPlaying = false;
+            } else {
+                audioElement.play();
+                isPlaying = true;
+            }
+            updatePlayPauseUI();
+        }
+
+        function updatePlayPauseUI() {
+            if (isPlaying) {
+                playIcon.className = 'fa-solid fa-pause';
+            } else {
+                playIcon.className = 'fa-solid fa-play ml-0.5';
+            }
+        }
+
+        function nextTrack() {
+            if (currentTracks.length === 0) return;
+            let nextIdx = currentIndex + 1;
+            if (nextIdx >= currentTracks.length) nextIdx = 0;
+            playTrack(nextIdx);
+        }
+
+        function previousTrack() {
+            if (currentTracks.length === 0) return;
+            let prevIdx = currentIndex - 1;
+            if (prevIdx < 0) prevIdx = currentTracks.length - 1;
+            playTrack(prevIdx);
+        }
+
+        function onTrackEnded() {
+            nextTrack();
+        }
+
+        function handleAudioError() {
+            console.error('Audio playback error');
+            playerLoading.classList.add('hidden');
+            isPlaying = false;
+            updatePlayPauseUI();
+        }
+
+        function updateProgress() {
+            if (isNaN(audioElement.duration)) return;
+            const current = audioElement.currentTime;
+            const duration = audioElement.duration;
+            const percent = (current / duration) * 100;
+            progressBar.style.width = `${percent}%`;
+
+            currentTimeEl.textContent = formatTime(current);
+            totalDurationEl.textContent = formatTime(duration);
+        }
+
+        function seekAudio(e) {
+            if (isNaN(audioElement.duration)) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const width = rect.width;
+            const percent = clickX / width;
+            audioElement.currentTime = percent * audioElement.duration;
+        }
+
+        function setVolume(value) {
+            audioElement.volume = value;
+            const volIcon = document.getElementById('volume-icon');
+            if (value == 0) {
+                volIcon.className = 'fa-solid fa-volume-xmark';
+            } else if (value < 0.5) {
+                volIcon.className = 'fa-solid fa-volume-low';
+            } else {
+                volIcon.className = 'fa-solid fa-volume-high';
+            }
+        }
+
+        function toggleMute() {
+            if (audioElement.volume > 0) {
+                audioElement.dataset.lastVol = audioElement.volume;
+                audioElement.volume = 0;
+                document.getElementById('volume-slider').value = 0;
+                document.getElementById('volume-icon').className = 'fa-solid fa-volume-xmark';
+            } else {
+                const restored = audioElement.dataset.lastVol || 1;
+                audioElement.volume = restored;
+                document.getElementById('volume-slider').value = restored;
+                setVolume(restored);
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>
