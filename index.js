@@ -10,6 +10,10 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Render sits behind a reverse proxy, so trust its X-Forwarded-For header to
+// get the real client IP (needed for express-rate-limit to work correctly).
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(express.json());
 
