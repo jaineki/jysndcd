@@ -34,6 +34,79 @@
         ::-webkit-scrollbar-track { background: #121212; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #ff5500; }
+
+        /* Spotify-style horizontal scrolling rows */
+        .hrow {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            scroll-snap-type: x proximity;
+            padding-bottom: 4px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hrow::-webkit-scrollbar { display: none; }
+        .hcard {
+            scroll-snap-align: start;
+            flex: 0 0 auto;
+            width: 152px;
+            cursor: pointer;
+        }
+        .hcard-art {
+            position: relative;
+            width: 152px;
+            height: 152px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255,85,0,0.2), rgba(255,85,0,0.05));
+        }
+        .hcard-circle .hcard-art { border-radius: 9999px; }
+        .hcard-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .hcard-play {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 40px;
+            height: 40px;
+            border-radius: 9999px;
+            background: #ff5500;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity .18s ease, transform .18s ease;
+        }
+        .hcard:hover .hcard-play { opacity: 1; transform: translateY(0); }
+        .hcard-title { margin-top: 8px; font-size: 0.8rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .hcard-sub { font-size: 0.72rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+        .row-skeleton { width: 152px; height: 152px; border-radius: 12px; background: #1e1e1e; flex: 0 0 auto; animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+
+        /* Popular Songs — vertical list rows */
+        .list-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background .15s ease;
+        }
+        .list-row:hover { background: #1e1e1e; }
+        .list-row-rank { width: 20px; text-align: center; font-size: 0.78rem; color: #9ca3af; flex: 0 0 auto; }
+        .list-row-art { width: 48px; height: 48px; border-radius: 8px; overflow: hidden; flex: 0 0 auto; background: linear-gradient(135deg, rgba(255,85,0,0.2), rgba(255,85,0,0.05)); }
+        .list-row-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .list-row-info { flex: 1; min-width: 0; }
+        .list-row-title { font-size: 0.85rem; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .list-row-sub { font-size: 0.75rem; color: #9ca3af; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+        .list-row-meta { font-size: 0.72rem; color: #9ca3af; flex: 0 0 auto; }
+        .list-row-play { width: 32px; height: 32px; border-radius: 9999px; background: #2a2a2a; color: #fff; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; opacity: 0; transition: opacity .15s ease, background .15s ease; }
+        .list-row:hover .list-row-play { opacity: 1; }
+        .list-row-play:hover { background: #ff5500; }
+        .list-row-skeleton { height: 64px; border-radius: 10px; background: #1e1e1e; animation: pulse 1.5s ease-in-out infinite; }
     </style>
 </head>
 <body class="bg-soundcloud-dark text-gray-100 min-h-screen flex flex-col justify-between selection:bg-soundcloud-orange selection:text-white">
@@ -199,42 +272,58 @@
                 </div>
             </div>
 
-            <!-- DISCOVER VIEW -->
-            <div id="view-discover" class="hidden space-y-8">
-                <!-- Popular Artists -->
-                <div>
-                    <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
-                        <h2 class="text-base font-semibold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-star text-amber-400"></i> Popular Artists
-                        </h2>
-                        <button onclick="loadDiscover()" class="bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-700 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-rotate"></i> Refresh
-                        </button>
-                    </div>
-                    <div id="popular-artists-loading" class="hidden flex items-center justify-center py-8">
-                        <div class="w-6 h-6 border-3 border-soundcloud-orange border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                    <div id="popular-artists-empty" class="hidden text-xs text-gray-500 text-center py-6">
-                        No listening activity yet — play some tracks to build the charts.
-                    </div>
-                    <div id="popular-artists-list" class="flex flex-wrap gap-2"></div>
+            <!-- DISCOVER VIEW (Spotify-style home) -->
+            <div id="view-discover" class="hidden space-y-9">
+
+                <div class="flex items-center justify-end -mb-4">
+                    <button onclick="loadDiscover()" class="bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-700 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                    </button>
                 </div>
 
-                <!-- Trending Songs -->
+                <!-- Popular Artists (circular row) -->
                 <div>
-                    <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
+                    <h2 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-star text-amber-400"></i> Popular Artists
+                    </h2>
+                    <div id="popular-artists-loading" class="hidden hrow">
+                        <div class="row-skeleton rounded-full"></div><div class="row-skeleton rounded-full"></div><div class="row-skeleton rounded-full"></div>
+                    </div>
+                    <div id="popular-artists-empty" class="hidden text-xs text-gray-500 py-6">
+                        No listening activity yet — play some tracks to build the charts.
+                    </div>
+                    <div id="popular-artists-list" class="hrow"></div>
+                </div>
+
+                <!-- Trending Songs (horizontal scroll row) -->
+                <div>
+                    <div class="flex items-baseline justify-between mb-4">
                         <h2 class="text-base font-semibold text-white flex items-center gap-2">
                             <i class="fa-solid fa-chart-line text-soundcloud-orange"></i> Trending Now
                         </h2>
                         <span id="trending-count" class="text-xs text-gray-400"></span>
                     </div>
-                    <div id="trending-loading" class="hidden flex items-center justify-center py-8">
-                        <div class="w-6 h-6 border-3 border-soundcloud-orange border-t-transparent rounded-full animate-spin"></div>
+                    <div id="trending-loading" class="hidden hrow">
+                        <div class="row-skeleton"></div><div class="row-skeleton"></div><div class="row-skeleton"></div><div class="row-skeleton"></div>
                     </div>
-                    <div id="trending-empty" class="hidden text-xs text-gray-500 text-center py-6">
+                    <div id="trending-empty" class="hidden text-xs text-gray-500 py-6">
                         Nothing trending yet — trends build up from recent plays.
                     </div>
-                    <div id="trending-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                    <div id="trending-grid" class="hrow"></div>
+                </div>
+
+                <!-- Popular Songs (vertical scrolling list) -->
+                <div>
+                    <h2 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ol text-soundcloud-orange"></i> Popular Songs
+                    </h2>
+                    <div id="popular-songs-loading" class="hidden space-y-2">
+                        <div class="list-row-skeleton"></div><div class="list-row-skeleton"></div><div class="list-row-skeleton"></div>
+                    </div>
+                    <div id="popular-songs-empty" class="hidden text-xs text-gray-500 py-6">
+                        No listening activity yet — play some tracks to build the charts.
+                    </div>
+                    <div id="popular-songs-list" class="divide-y divide-gray-800/70"></div>
                 </div>
             </div>
 
@@ -655,7 +744,8 @@
             }
         }
 
-        // Discover: Trending + Popular Artists
+        // Discover: Spotify-style home — Popular Artists (circles), Trending
+        // (horizontal row), Popular Songs (vertical list).
         async function loadDiscover() {
             const artistsLoading = document.getElementById('popular-artists-loading');
             const artistsEmpty = document.getElementById('popular-artists-empty');
@@ -664,6 +754,9 @@
             const trendingEmpty = document.getElementById('trending-empty');
             const trendingGrid = document.getElementById('trending-grid');
             const trendingCount = document.getElementById('trending-count');
+            const songsLoading = document.getElementById('popular-songs-loading');
+            const songsEmpty = document.getElementById('popular-songs-empty');
+            const songsList = document.getElementById('popular-songs-list');
 
             artistsLoading.classList.remove('hidden');
             artistsEmpty.classList.add('hidden');
@@ -672,27 +765,83 @@
             trendingEmpty.classList.add('hidden');
             trendingGrid.innerHTML = '';
             trendingCount.textContent = '';
+            songsLoading.classList.remove('hidden');
+            songsEmpty.classList.add('hidden');
+            songsList.innerHTML = '';
 
             try {
-                const [artistsRes, trendingRes] = await Promise.all([
+                const [artistsRes, trendingRes, songsRes] = await Promise.all([
                     fetch('/api/discovery/popular-artists?limit=15'),
-                    fetch('/api/discovery/trending?limit=12')
+                    fetch('/api/discovery/trending?limit=14'),
+                    fetch('/api/discovery/popular-songs?limit=20')
                 ]);
                 const artistsData = await artistsRes.json();
                 const trendingData = await trendingRes.json();
+                const songsData = await songsRes.json();
 
                 artistsLoading.classList.add('hidden');
                 trendingLoading.classList.add('hidden');
+                songsLoading.classList.add('hidden');
 
                 renderPopularArtists(artistsData.success ? artistsData.data : []);
                 renderTrending(trendingData.success ? trendingData.data : []);
+                renderPopularSongs(songsData.success ? songsData.data : []);
             } catch (error) {
                 console.error('Discover load error:', error);
                 artistsLoading.classList.add('hidden');
                 trendingLoading.classList.add('hidden');
+                songsLoading.classList.add('hidden');
                 artistsEmpty.classList.remove('hidden');
                 trendingEmpty.classList.remove('hidden');
+                songsEmpty.classList.remove('hidden');
             }
+        }
+
+        // Holds the track array behind each horizontal row, keyed by rowId,
+        // so clicking a card can hand the right list + index to the player
+        // (next/prev keep working, same as the Search tab).
+        const discoverRows = {};
+
+        function playDiscoverRowTrack(rowId, index) {
+            if (!checkAndIncrementFreePlay()) return;
+            currentTracks = discoverRows[rowId];
+            currentIndex = index;
+            streamAndPlayTrack(currentTracks[index]);
+        }
+
+        // Deterministic color for an artist's fallback avatar (no photo API
+        // for artists, so we generate a stable colored circle + initial).
+        function avatarColor(name) {
+            const colors = ['#ff5500', '#1db954', '#8e44ad', '#2980b9', '#e67e22', '#c0392b', '#16a085', '#d35400'];
+            let hash = 0;
+            const str = name || '?';
+            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        // Renders a horizontal row of album/track cards (cover art, title,
+        // subtitle, play button on hover) — used by Trending + every genre row.
+        function makeTrackCardRow(containerId, tracks, rowId) {
+            const el = document.getElementById(containerId);
+            el.innerHTML = '';
+            discoverRows[rowId] = tracks;
+
+            tracks.forEach((t, i) => {
+                const card = document.createElement('div');
+                card.className = 'hcard';
+                card.onclick = () => playDiscoverRowTrack(rowId, i);
+                card.innerHTML = `
+                    <div class="hcard-art">
+                        ${t.thumbnail
+                            ? `<img src="${t.thumbnail}" alt="${escapeHtml(t.title)}" loading="lazy">`
+                            : `<div class="w-full h-full flex items-center justify-center text-soundcloud-orange text-2xl"><i class="fa-solid fa-music"></i></div>`}
+                        <div class="hcard-play"><i class="fa-solid fa-play text-sm ml-0.5"></i></div>
+                    </div>
+                    <div class="hcard-title" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</div>
+                    <div class="hcard-sub" title="${escapeHtml(t.user)}">${escapeHtml(t.user)}</div>
+                `;
+                el.appendChild(card);
+            });
         }
 
         function renderPopularArtists(artists) {
@@ -704,13 +853,23 @@
                 artistsEmpty.classList.remove('hidden');
                 return;
             }
+            artistsEmpty.classList.add('hidden');
 
             artists.forEach(a => {
-                const chip = document.createElement('button');
-                chip.onclick = () => { document.getElementById('search-input').value = a.artist; switchTab('search'); searchSoundCloud(a.artist); };
-                chip.className = 'bg-soundcloud-card hover:bg-soundcloud-hover border border-gray-800 hover:border-soundcloud-orange px-4 py-2 rounded-xl text-xs font-medium transition flex items-center gap-2';
-                chip.innerHTML = `<i class="fa-solid fa-user text-soundcloud-orange"></i> ${escapeHtml(a.artist)} <span class="text-gray-500">· ${a.totalPlays} plays</span>`;
-                artistsList.appendChild(chip);
+                const card = document.createElement('div');
+                card.className = 'hcard hcard-circle';
+                card.style.width = '112px';
+                card.onclick = () => { document.getElementById('search-input').value = a.artist; switchTab('search'); searchSoundCloud(a.artist); };
+                card.innerHTML = `
+                    <div class="hcard-art" style="width:112px;height:112px;">
+                        ${a.thumbnail
+                            ? `<img src="${a.thumbnail}" alt="${escapeHtml(a.artist)}" loading="lazy">`
+                            : `<div class="w-full h-full flex items-center justify-center text-white text-2xl font-bold" style="background:${avatarColor(a.artist)}">${escapeHtml((a.artist || '?').charAt(0).toUpperCase())}</div>`}
+                    </div>
+                    <div class="hcard-title" style="text-align:center">${escapeHtml(a.artist)}</div>
+                    <div class="hcard-sub" style="text-align:center">${a.totalPlays} plays</div>
+                `;
+                artistsList.appendChild(card);
             });
         }
 
@@ -718,18 +877,18 @@
             const trendingEmpty = document.getElementById('trending-empty');
             const trendingGrid = document.getElementById('trending-grid');
             const trendingCount = document.getElementById('trending-count');
-            trendingGrid.innerHTML = '';
 
             if (!tracks || tracks.length === 0) {
                 trendingEmpty.classList.remove('hidden');
+                trendingGrid.innerHTML = '';
                 return;
             }
+            trendingEmpty.classList.add('hidden');
             trendingCount.textContent = `${tracks.length} tracks`;
 
             // Trending tracks come from tracks_cache (title/artist/url/thumbnail/
-            // duration) — normalize into the same shape currentTracks/renderTracks
-            // expects (track.user instead of track.artist) so we can reuse the
-            // existing card renderer and player.
+            // duration) — normalize into the same shape (track.user instead of
+            // track.artist) that streamAndPlayTrack/the player expects.
             const normalized = tracks
                 .filter(t => t.url)
                 .map(t => ({
@@ -747,68 +906,62 @@
                 return;
             }
 
-            // Reuse the existing search-results renderer/player by temporarily
-            // pointing currentTracks + results-grid-like markup at trending data.
-            const originalGrid = document.getElementById('results-grid');
-            currentTracks = normalized;
-            const tempGridId = 'trending-grid';
-            renderTracksInto(tempGridId, normalized);
+            makeTrackCardRow('trending-grid', normalized, 'trending');
         }
 
-        // Same card markup as renderTracks(), but targets an arbitrary
-        // container id so Discover can render into its own grid without
-        // disturbing the Search tab's results-grid or currentIndex state.
-        function renderTracksInto(gridId, tracks) {
-            const grid = document.getElementById(gridId);
-            grid.innerHTML = '';
+        // Popular Songs — vertical scrolling list (all-time play leaderboard).
+        // Uses the same discoverRows/playDiscoverRowTrack mechanism as the
+        // horizontal rows so next/prev keep working from here too.
+        function renderPopularSongs(tracks) {
+            const empty = document.getElementById('popular-songs-empty');
+            const list = document.getElementById('popular-songs-list');
+            list.innerHTML = '';
 
-            tracks.forEach((track, index) => {
-                const canDownload = currentTier === 'premium';
-                const card = document.createElement('div');
-                card.className = 'bg-soundcloud-card border border-gray-800 rounded-2xl p-4 flex flex-col justify-between hover:border-gray-600 transition group';
-                card.innerHTML = `
-                    <div>
-                        <div class="flex items-start justify-between gap-3 mb-3">
-                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-soundcloud-orange/20 to-orange-500/10 flex items-center justify-center text-soundcloud-orange font-bold text-lg flex-shrink-0">
-                                <i class="fa-solid fa-music"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h3 class="text-sm font-semibold text-white truncate" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</h3>
-                                <p class="text-xs text-gray-400 truncate mt-0.5"><i class="fa-solid fa-user-pen mr-1 text-gray-500"></i>${escapeHtml(track.user)}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4 text-xs text-gray-400 mb-4 px-1">
-                            <span><i class="fa-regular fa-clock mr-1"></i>${track.duration || 'N/A'}</span>
-                            <span><i class="fa-solid fa-headphones mr-1"></i>${track.plays || 'N/A'}</span>
-                        </div>
+            if (!tracks || tracks.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            const normalized = tracks
+                .filter(t => t.url)
+                .map(t => ({
+                    id: t.track_id,
+                    title: t.title || 'Unknown title',
+                    user: t.artist || 'Unknown artist',
+                    duration: t.duration,
+                    plays: t.totalPlays ? `${t.totalPlays} plays` : t.plays,
+                    url: t.url,
+                    thumbnail: t.thumbnail
+                }));
+
+            if (normalized.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            discoverRows['popular-songs'] = normalized;
+
+            normalized.forEach((t, i) => {
+                const row = document.createElement('div');
+                row.className = 'list-row';
+                row.onclick = () => playDiscoverRowTrack('popular-songs', i);
+                row.innerHTML = `
+                    <div class="list-row-rank">${i + 1}</div>
+                    <div class="list-row-art">
+                        ${t.thumbnail
+                            ? `<img src="${t.thumbnail}" alt="${escapeHtml(t.title)}" loading="lazy">`
+                            : `<div class="w-full h-full flex items-center justify-center text-soundcloud-orange"><i class="fa-solid fa-music"></i></div>`}
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button
-                            onclick="playFromDiscover(${index})"
-                            class="flex-1 py-2 px-4 rounded-xl font-medium text-xs transition flex items-center justify-center gap-2 bg-gray-800 hover:bg-soundcloud-orange hover:text-white text-gray-200"
-                        >
-                            <i class="fa-solid fa-play"></i>
-                            <span>Play</span>
-                        </button>
-                        <button
-                            onclick="playRadio('${track.url}')"
-                            class="py-2 px-3 bg-soundcloud-orange/20 hover:bg-soundcloud-orange text-soundcloud-orange hover:text-white rounded-xl text-xs transition border border-soundcloud-orange/30"
-                            title="Start Radio from this track"
-                        >
-                            <i class="fa-solid fa-satellite-dish"></i>
-                        </button>
+                    <div class="list-row-info">
+                        <div class="list-row-title" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</div>
+                        <div class="list-row-sub" title="${escapeHtml(t.user)}">${escapeHtml(t.user)}</div>
                     </div>
+                    <div class="list-row-meta">${t.duration || ''}</div>
+                    <div class="list-row-play"><i class="fa-solid fa-play text-xs ml-0.5"></i></div>
                 `;
-                grid.appendChild(card);
+                list.appendChild(row);
             });
-        }
-
-        // Play a track from the Discover grid: sets currentTracks to the
-        // discover list so player controls (next/prev) work normally.
-        function playFromDiscover(index) {
-            if (!checkAndIncrementFreePlay()) return;
-            currentIndex = index;
-            streamAndPlayTrack(currentTracks[index]);
         }
 
         // Start an endless radio queue seeded from a track's url, load it
