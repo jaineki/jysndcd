@@ -107,6 +107,44 @@
         .list-row:hover .list-row-play { opacity: 1; }
         .list-row-play:hover { background: #ff5500; }
         .list-row-skeleton { height: 64px; border-radius: 10px; background: #1e1e1e; animation: pulse 1.5s ease-in-out infinite; }
+
+        /* Popular Radio — colored artist-seeded radio cards */
+        .radio-card {
+            width: 168px;
+            height: 168px;
+            flex: 0 0 auto;
+            border-radius: 12px;
+            padding: 14px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            scroll-snap-align: start;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .radio-card:hover { transform: scale(1.03); box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+        .radio-tag {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            text-transform: uppercase;
+        }
+        .radio-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 9999px;
+            overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.35);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+        }
+        .radio-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .radio-name { font-size: 0.92rem; font-weight: 700; color: #fff; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     </style>
 </head>
 <body class="bg-soundcloud-dark text-gray-100 min-h-screen flex flex-col justify-between selection:bg-soundcloud-orange selection:text-white">
@@ -293,6 +331,22 @@
                         No listening activity yet — play some tracks to build the charts.
                     </div>
                     <div id="popular-artists-list" class="hrow"></div>
+                </div>
+
+                <!-- Popular Radio (artist-seeded radio queues, tap to play) -->
+                <div>
+                    <h2 class="text-base font-semibold text-white mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-tower-broadcast text-soundcloud-orange"></i> Popular Radio
+                    </h2>
+                    <div id="popular-radio-loading" class="hidden hrow">
+                        <div class="row-skeleton" style="width:168px;height:168px;"></div>
+                        <div class="row-skeleton" style="width:168px;height:168px;"></div>
+                        <div class="row-skeleton" style="width:168px;height:168px;"></div>
+                    </div>
+                    <div id="popular-radio-empty" class="hidden text-xs text-gray-500 py-6">
+                        No listening activity yet — play a few tracks to unlock radio stations.
+                    </div>
+                    <div id="popular-radio-list" class="hrow"></div>
                 </div>
 
                 <!-- Trending Songs (horizontal scroll row) -->
@@ -750,6 +804,9 @@
             const artistsLoading = document.getElementById('popular-artists-loading');
             const artistsEmpty = document.getElementById('popular-artists-empty');
             const artistsList = document.getElementById('popular-artists-list');
+            const radioLoading = document.getElementById('popular-radio-loading');
+            const radioEmpty = document.getElementById('popular-radio-empty');
+            const radioList = document.getElementById('popular-radio-list');
             const trendingLoading = document.getElementById('trending-loading');
             const trendingEmpty = document.getElementById('trending-empty');
             const trendingGrid = document.getElementById('trending-grid');
@@ -761,6 +818,9 @@
             artistsLoading.classList.remove('hidden');
             artistsEmpty.classList.add('hidden');
             artistsList.innerHTML = '';
+            radioLoading.classList.remove('hidden');
+            radioEmpty.classList.add('hidden');
+            radioList.innerHTML = '';
             trendingLoading.classList.remove('hidden');
             trendingEmpty.classList.add('hidden');
             trendingGrid.innerHTML = '';
@@ -780,18 +840,23 @@
                 const songsData = await songsRes.json();
 
                 artistsLoading.classList.add('hidden');
+                radioLoading.classList.add('hidden');
                 trendingLoading.classList.add('hidden');
                 songsLoading.classList.add('hidden');
 
-                renderPopularArtists(artistsData.success ? artistsData.data : []);
+                const artists = artistsData.success ? artistsData.data : [];
+                renderPopularArtists(artists);
+                renderPopularRadio(artists); // same source data, reused for radio cards
                 renderTrending(trendingData.success ? trendingData.data : []);
                 renderPopularSongs(songsData.success ? songsData.data : []);
             } catch (error) {
                 console.error('Discover load error:', error);
                 artistsLoading.classList.add('hidden');
+                radioLoading.classList.add('hidden');
                 trendingLoading.classList.add('hidden');
                 songsLoading.classList.add('hidden');
                 artistsEmpty.classList.remove('hidden');
+                radioEmpty.classList.remove('hidden');
                 trendingEmpty.classList.remove('hidden');
                 songsEmpty.classList.remove('hidden');
             }
@@ -870,6 +935,43 @@
                     <div class="hcard-sub" style="text-align:center">${a.totalPlays} plays</div>
                 `;
                 artistsList.appendChild(card);
+            });
+        }
+
+        // Popular Radio — colored cards seeded from each popular artist's
+        // best-played track. Tapping a card calls the same playRadio() used
+        // by the "Start Radio" buttons elsewhere, which hits
+        // /api/discovery/radio/:trackId and loads a full generated queue.
+        function renderPopularRadio(artists) {
+            const empty = document.getElementById('popular-radio-empty');
+            const list = document.getElementById('popular-radio-list');
+            list.innerHTML = '';
+
+            const withSeed = (artists || []).filter(a => a.seedUrl);
+            if (withSeed.length === 0) {
+                empty.classList.remove('hidden');
+                return;
+            }
+            empty.classList.add('hidden');
+
+            withSeed.forEach(a => {
+                const color = avatarColor(a.artist);
+                const card = document.createElement('div');
+                card.className = 'radio-card';
+                card.style.background = `linear-gradient(160deg, ${color} 0%, #000000 140%)`;
+                card.onclick = () => playRadio(a.seedUrl);
+                card.innerHTML = `
+                    <div class="radio-tag"><i class="fa-solid fa-tower-broadcast"></i> Radio</div>
+                    <div>
+                        <div class="radio-avatar">
+                            ${a.thumbnail
+                                ? `<img src="${a.thumbnail}" alt="${escapeHtml(a.artist)}" loading="lazy">`
+                                : `<div class="w-full h-full flex items-center justify-center text-white text-lg font-bold" style="background:${color}">${escapeHtml((a.artist || '?').charAt(0).toUpperCase())}</div>`}
+                        </div>
+                        <div class="radio-name" title="${escapeHtml(a.artist)}">${escapeHtml(a.artist)}</div>
+                    </div>
+                `;
+                list.appendChild(card);
             });
         }
 
