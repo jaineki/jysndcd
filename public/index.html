@@ -145,6 +145,42 @@
         }
         .radio-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .radio-name { font-size: 0.92rem; font-weight: 700; color: #fff; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Curated Artist Radio */
+        .curated-radio-card { width: 204px; flex: 0 0 auto; cursor: pointer; }
+        .curated-radio-card:hover .curated-radio-art { transform: translateY(-3px); box-shadow: 0 14px 28px rgba(0,0,0,.35); }
+        .curated-radio-art { height: 204px; border-radius: 18px; position: relative; overflow: hidden; display:flex; flex-direction:column; justify-content:space-between; padding: 16px; transition: transform .2s ease, box-shadow .2s ease; }
+        .curated-radio-art::after { content:''; position:absolute; inset: 34% -20% -30% 25%; background: rgba(255,255,255,.13); border-radius: 50%; transform: rotate(-18deg); }
+        .curated-radio-art > * { position:relative; z-index:1; }
+        .curated-radio-art .radio-art-kicker { font-size:.65rem; letter-spacing:.08em; font-weight:800; text-transform:uppercase; color:rgba(255,255,255,.82); }
+        .curated-radio-art .radio-art-mark { width: 58px; height:58px; border-radius: 16px; background:rgba(0,0,0,.24); border:1px solid rgba(255,255,255,.25); display:flex; align-items:center; justify-content:center; font-size:1.4rem; color:#fff; box-shadow:0 8px 16px rgba(0,0,0,.18); }
+        .curated-radio-art .radio-art-initial { font-size:2.8rem; font-weight:800; line-height:1; color:#fff; letter-spacing:-.08em; }
+        .curated-radio-title { margin-top: 10px; font-size:.9rem; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .curated-radio-subtitle { margin-top:3px; font-size:.72rem; color:#9ca3af; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .radio-hero { border:1px solid rgba(255,255,255,.08); background:linear-gradient(135deg, rgba(255,85,0,.22), rgba(30,30,30,.92) 58%); border-radius:28px; padding:clamp(18px, 4vw, 34px); display:flex; align-items:flex-end; gap:24px; overflow:hidden; position:relative; }
+        .radio-hero::after { content:''; position:absolute; width:380px; height:380px; right:-110px; top:-180px; border-radius:50%; background:rgba(255,255,255,.06); }
+        .radio-hero > * { position:relative; z-index:1; }
+        .radio-hero-art { width:190px; height:190px; flex:0 0 auto; border-radius:22px; padding:18px; display:flex; flex-direction:column; justify-content:space-between; box-shadow:0 18px 34px rgba(0,0,0,.34); }
+        .radio-hero-art .radio-art-initial { font-size:4.5rem; }
+        .radio-track-row { display:grid; grid-template-columns:36px minmax(0, 1fr) auto auto; gap:12px; align-items:center; padding:9px 10px; border-radius:12px; position:relative; cursor:pointer; transition:background .15s ease; }
+        .radio-track-row:hover, .radio-track-row.is-playing { background:#1e1e1e; }
+        .radio-track-number { text-align:center; color:#737373; font-size:.78rem; }
+        .radio-track-row.is-playing .radio-track-number { color:#ff5500; }
+        .radio-track-info { min-width:0; }
+        .radio-track-title { color:#f5f5f5; font-size:.85rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .radio-track-artist { color:#9ca3af; font-size:.74rem; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .radio-track-meta { color:#737373; font-size:.72rem; white-space:nowrap; }
+        .radio-track-action { width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:999px; color:#9ca3af; transition:color .15s ease, background .15s ease; }
+        .radio-track-action:hover { color:#fff; background:#2a2a2a; }
+        .radio-track-action.saved { color:#ff5500; }
+        .radio-track-menu { position:absolute; top:44px; right:8px; z-index:10; min-width:170px; padding:5px; border:1px solid #3b3b3b; border-radius:12px; background:#202020; box-shadow:0 12px 28px rgba(0,0,0,.45); }
+        .radio-menu-item { width:100%; display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:8px; color:#d1d5db; font-size:.74rem; text-align:left; }
+        .radio-menu-item:hover { background:#2d2d2d; color:#fff; }
+        .radio-menu-item i { width:14px; text-align:center; color:#ff5500; }
+        .radio-pill { display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.06); color:#c7c7c7; border-radius:999px; padding:6px 10px; font-size:.7rem; }
+        .radio-toast { position:fixed; left:50%; bottom:92px; transform:translate(-50%, 12px); opacity:0; pointer-events:none; z-index:70; padding:10px 14px; border:1px solid rgba(255,255,255,.12); border-radius:12px; background:#252525; color:#fff; font-size:.75rem; box-shadow:0 12px 30px rgba(0,0,0,.4); transition:opacity .2s ease, transform .2s ease; }
+        .radio-toast.show { opacity:1; transform:translate(-50%, 0); }
+        @media (max-width:640px) { .radio-hero { align-items:flex-start; flex-direction:column; } .radio-hero-art { width:132px; height:132px; } .radio-hero-art .radio-art-initial { font-size:3.3rem; } .radio-track-row { grid-template-columns:26px minmax(0,1fr) 30px 30px; gap:7px; } .radio-track-meta { display:none; } }
     </style>
 </head>
 <body class="bg-soundcloud-dark text-gray-100 min-h-screen flex flex-col justify-between selection:bg-soundcloud-orange selection:text-white">
@@ -176,6 +212,9 @@
                     </button>
                     <button id="tab-discover-btn" onclick="switchTab('discover')" class="px-4 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white">
                         <i class="fa-solid fa-fire mr-1.5 text-orange-400"></i> Discover
+                    </button>
+                    <button id="tab-radio-btn" onclick="switchTab('radio')" class="px-4 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white">
+                        <i class="fa-solid fa-tower-broadcast mr-1.5 text-soundcloud-orange"></i> Radio
                     </button>
                 </div>
 
@@ -381,9 +420,50 @@
                 </div>
             </div>
 
+            <!-- CURATED RADIO VIEW -->
+            <div id="view-radio" class="hidden space-y-8">
+                <div class="flex items-end justify-between gap-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.18em] text-soundcloud-orange font-bold mb-2">Hand-picked listening</p>
+                        <h2 class="text-2xl sm:text-3xl font-bold text-white">Artist Radio</h2>
+                        <p class="text-sm text-gray-400 mt-2 max-w-2xl">Curated stations built around the artists, moods, and OPM moments worth replaying.</p>
+                    </div>
+                    <span class="radio-pill hidden sm:inline-flex"><i class="fa-solid fa-wand-magic-sparkles text-soundcloud-orange"></i> Curated by Jay Sound Cloud</span>
+                </div>
+
+                <section>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-semibold text-white">Made for your next listen</h3>
+                            <p class="text-xs text-gray-500 mt-1">Select a station to open its continuous track list.</p>
+                        </div>
+                        <span id="radio-station-count" class="text-xs text-gray-500"></span>
+                    </div>
+                    <div id="curated-radio-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-7"></div>
+                </section>
+
+                <section id="radio-detail" class="hidden space-y-6">
+                    <button onclick="closeRadioStation()" class="text-xs text-gray-400 hover:text-white transition flex items-center gap-2"><i class="fa-solid fa-arrow-left"></i> All radio stations</button>
+                    <div id="radio-hero"></div>
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-semibold text-white">Songs in this radio</h3>
+                            <p id="radio-track-count" class="text-xs text-gray-500 mt-1"></p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="startActiveRadio(false)" class="bg-soundcloud-orange hover:bg-orange-600 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2 shadow-lg shadow-soundcloud-orange/20"><i class="fa-solid fa-play"></i> Play all</button>
+                            <button onclick="startActiveRadio(true)" class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-200 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-2"><i class="fa-solid fa-shuffle"></i> Shuffle</button>
+                        </div>
+                    </div>
+                    <div id="radio-track-list" class="border-t border-gray-800/80 pt-2"></div>
+                </section>
+            </div>
+
         </div>
 
     </main>
+
+    <div id="radio-toast" class="radio-toast" role="status" aria-live="polite"></div>
 
     <!-- Sticky Audio Player Bar (Hidden until signed in & playing) -->
     <div id="player-bar" class="fixed bottom-0 left-0 right-0 z-50 bg-soundcloud-card/95 backdrop-blur-md border-t border-gray-800 shadow-2xl transition-all duration-300 hidden">
@@ -516,6 +596,70 @@
         let isPlaying = false;
         let currentStreamUrl = '';
         let authMode = 'signin';
+        let currentRadioStation = null;
+        let radioToastTimer = null;
+        let radioResolvePromises = new Map();
+        let radioPlaylists = JSON.parse(localStorage.getItem('jay_radio_playlists') || '{}');
+
+        // Editorial station catalog. Track URLs are resolved through the existing
+        // SoundCloud search proxy only when needed, while the title/artist pair
+        // remains the source of truth for the hand-picked sequence.
+        const CURATED_RADIOS = [
+            {
+                id: 'orange-lemons', title: 'Orange & Lemons Radio', artist: 'Orange & Lemons', type: 'Artist Radio',
+                description: 'With Hale, Moonstar88, Up Dharma Down and more', mood: 'OPM alternative / pop-rock',
+                curatedBy: 'Jay Sound Cloud', initial: 'O&L', icon: 'fa-guitar', gradient: 'linear-gradient(145deg, #f97316 0%, #c2410c 46%, #29130b 100%)',
+                songs: [
+                    ['Heaven Knows - This Angel', 'Orange & Lemons'], ['Keep On Loving You', 'Renz Verano'], ['Kay Tagal Kitang Hinintay', 'Sponge Cola'], ['Buloy', 'Parokya Ni Edgar'], ['Mahal Pa Rin Kita', 'Rockstar'], ['Tensionado', 'Soapdish'], ['The Day You Said Goodnight', 'Hale'], ['14', 'Silent Sanctuary'], ['Alipin', 'Shamrock'], ['Ikaw Lang', 'Nobita'], ['Sana', 'I Belong to the Zoo'], ['Eroplanong Papel', 'December Avenue'], ['Umaasa', 'Calein'], ['Halaga', 'Parokya Ni Edgar'], ['Hanggang Kailan', 'Orange & Lemons'], ['Tayong Dalawa', 'Rey Valera'], ['Kung Wala Ka', 'Hale'], ['Rebound', 'Silent Sanctuary'], ['Kasalanan', 'Orient Pearl'], ['Kalapastangan', 'fitterkarma'], ['Pusong Ligaw', 'Jericho Rosales'], ['Buko', 'Jireh Lim'], ['Bulong', 'December Avenue'], ['Migraine', 'Moonstar88'], ['Kaleidoscope World', 'Parokya Ni Edgar']
+                ]
+            },
+            {
+                id: 'hale', title: 'Hale Radio', artist: 'Hale', type: 'Artist Radio',
+                description: 'Emotional OPM rock for quiet mornings and long rides', mood: 'Emotional OPM rock',
+                curatedBy: 'Jay Sound Cloud', initial: 'H', icon: 'fa-cloud-rain', gradient: 'linear-gradient(145deg, #64748b 0%, #334155 46%, #111827 100%)',
+                songs: [['The Day You Said Goodnight', 'Hale'], ['Kung Wala Ka', 'Hale'], ['Kahit Pa', 'Hale'], ['Broken Sonnet', 'Hale'], ['Sandali Lang', 'Hale'], ['This Time', 'Hale'], ['Heaven Knows - This Angel', 'Orange & Lemons'], ['14', 'Silent Sanctuary']]
+            },
+            {
+                id: 'december-avenue', title: 'December Avenue Radio', artist: 'December Avenue', type: 'Artist Radio',
+                description: 'Mellow heartbreak anthems with a little light at the end', mood: 'Mellow / heartbreak OPM',
+                curatedBy: 'Jay Sound Cloud', initial: 'DA', icon: 'fa-moon', gradient: 'linear-gradient(145deg, #7c3aed 0%, #4338ca 48%, #17112f 100%)',
+                songs: [['Kung Di Rin Lang Ikaw', 'December Avenue'], ['Sa Ngalan ng Pag-ibig', 'December Avenue'], ['Huling Sandali', 'December Avenue'], ['Bulong', 'December Avenue'], ['Eroplanong Papel', 'December Avenue'], ['Kahit ' + "'" + 'Di Mo Alam', 'December Avenue'], ['Bawat Daan', 'Ebe Dancel'], ['Sana', 'I Belong to the Zoo']]
+            },
+            {
+                id: 'parokya', title: 'Parokya Ni Edgar Radio', artist: 'Parokya Ni Edgar', type: 'Artist Radio',
+                description: 'Classic Filipino rock, mischief, and songs everyone knows by heart', mood: 'Classic Filipino rock',
+                curatedBy: 'Jay Sound Cloud', initial: 'PNE', icon: 'fa-face-grin-squint-tears', gradient: 'linear-gradient(145deg, #eab308 0%, #ca8a04 44%, #271b05 100%)',
+                songs: [['Buloy', 'Parokya Ni Edgar'], ['Halaga', 'Parokya Ni Edgar'], ['Kaleidoscope World', 'Parokya Ni Edgar'], ['Pangarap Lang Kita', 'Parokya Ni Edgar'], ['Yes Yes Show', 'Parokya Ni Edgar'], ['Inuman Na', 'Parokya Ni Edgar'], ['Mang Jose', 'Parokya Ni Edgar'], ['Alapaap', 'Eraserheads']]
+            },
+            {
+                id: 'opm-2000s', title: '2000s OPM Radio', artist: 'OPM Essentials', type: 'Era Radio',
+                description: 'Nostalgic Filipino hits from burned CDs, Friendster, and first loves', mood: 'Nostalgic Filipino hits',
+                curatedBy: 'Jay Sound Cloud', initial: '00s', icon: 'fa-compact-disc', gradient: 'linear-gradient(145deg, #ec4899 0%, #be185d 45%, #2a071a 100%)',
+                songs: [['Heaven Knows - This Angel', 'Orange & Lemons'], ['The Day You Said Goodnight', 'Hale'], ['Migraine', 'Moonstar88'], ['Your Universe', 'Rico Blanco'], ['With A Smile', 'Eraserheads'], ['Balisong', 'Rivermaya'], ['Narda', 'Kamikazee'], ['214', 'Rivermaya'], ['Jeepney', 'Sponge Cola']]
+            },
+            {
+                id: 'late-night', title: 'Late Night OPM Radio', artist: 'After Hours OPM', type: 'Mood Radio',
+                description: 'Slow, intimate songs for city lights and messages left unsent', mood: 'Slow and emotional',
+                curatedBy: 'Jay Sound Cloud', initial: 'LN', icon: 'fa-stars', gradient: 'linear-gradient(145deg, #0f766e 0%, #115e59 48%, #061f23 100%)',
+                songs: [['Sana', 'I Belong to the Zoo'], ['Huling Sandali', 'December Avenue'], ['Bawat Daan', 'Ebe Dancel'], ['Tahanan', 'Adie'], ["Sa'yo", 'Munimuni'], ['Di Na Babalik', 'Ang Bandang Shirley'], ['Ikaw Lang', 'Nobita'], ['Kung Wala Ka', 'Hale']]
+            },
+            {
+                id: 'pinoy-rock', title: 'Pinoy Rock Radio', artist: 'Pinoy Rock Classics', type: 'Genre Radio',
+                description: 'Guitars up: Filipino rock classics from every generation', mood: 'Filipino rock classics',
+                curatedBy: 'Jay Sound Cloud', initial: 'PR', icon: 'fa-bolt', gradient: 'linear-gradient(145deg, #ef4444 0%, #b91c1c 44%, #270707 100%)',
+                songs: [['Alapaap', 'Eraserheads'], ['Narda', 'Kamikazee'], ['Gitara', 'Parokya Ni Edgar'], ['Liwanag Sa Dilim', 'Rivermaya'], ['Kisapmata', 'Rivermaya'], ['With A Smile', 'Eraserheads'], ['Magasin', 'Eraserheads'], ['Hallelujah', 'Bamboo'], ['Lightyears', 'Rivermaya']]
+            },
+            {
+                id: 'opm-love', title: 'OPM Love Songs Radio', artist: 'OPM Love Songs', type: 'Mood Radio',
+                description: 'Romantic Filipino songs for kilig, comfort, and everything between', mood: 'Romantic Filipino songs',
+                curatedBy: 'Jay Sound Cloud', initial: '♥', icon: 'fa-heart', gradient: 'linear-gradient(145deg, #fb7185 0%, #e11d48 44%, #310712 100%)',
+                songs: [['Hanggang Kailan', 'Orange & Lemons'], ['Ikaw Lang', 'Nobita'], ['Kung Ako Na Lang Sana', 'Bituin Escalante'], ['Ako Na Lang', 'Zia Quizon'], ["Pangako Sa'yo", 'Sheryn Regis'], ['Kailangan Kita', 'Erik Santos'], ['Sinta', 'Rob Deniel'], ['Your Universe', 'Rico Blanco'], ['Mahal Pa Rin Kita', 'Rockstar']]
+            }
+        ];
+
+        CURATED_RADIOS.forEach(station => {
+            station.tracks = station.songs.map(([title, artist]) => ({ title, user: artist, url: '', id: '', duration: '', plays: '', thumbnail: '' }));
+        });
 
         const audioElement = document.getElementById('audio-element');
         const playPauseBtn = document.getElementById('play-pause-btn');
@@ -759,6 +903,228 @@
             hideAppUI();
         }
 
+        function showRadioToast(message) {
+            const toast = document.getElementById('radio-toast');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(radioToastTimer);
+            radioToastTimer = setTimeout(() => toast.classList.remove('show'), 2400);
+        }
+
+        function radioArtMarkup(station, hero = false) {
+            return `<div class="${hero ? 'radio-hero-art' : 'curated-radio-art'}" style="background:${station.gradient}">
+                <div class="radio-art-kicker">${escapeHtml(station.type)}</div>
+                <div class="radio-art-mark"><i class="fa-solid ${station.icon}"></i></div>
+                <div class="radio-art-initial">${escapeHtml(station.initial)}</div>
+            </div>`;
+        }
+
+        function renderCuratedRadioCatalog() {
+            const grid = document.getElementById('curated-radio-grid');
+            const count = document.getElementById('radio-station-count');
+            if (!grid) return;
+            count.textContent = `${CURATED_RADIOS.length} stations`;
+            grid.innerHTML = '';
+            CURATED_RADIOS.forEach(station => {
+                const card = document.createElement('article');
+                card.className = 'curated-radio-card';
+                card.tabIndex = 0;
+                card.setAttribute('role', 'button');
+                card.setAttribute('aria-label', `Open ${station.title}`);
+                card.onclick = () => openRadioStation(station.id);
+                card.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openRadioStation(station.id); } };
+                card.innerHTML = `${radioArtMarkup(station)}
+                    <div class="curated-radio-title" title="${escapeHtml(station.title)}">${escapeHtml(station.title)}</div>
+                    <div class="curated-radio-subtitle" title="${escapeHtml(station.description)}">${escapeHtml(station.description)}</div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function normalizeRadioText(value) {
+            return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+        }
+
+        async function resolveRadioTrack(track) {
+            if (track.url) return track;
+            const key = `${track.title}|${track.user}`;
+            if (radioResolvePromises.has(key)) return radioResolvePromises.get(key);
+            const promise = fetch(`/api/search/soundcloud?q=${encodeURIComponent(`${track.title} ${track.user}`)}&limit=6`)
+                .then(response => response.json())
+                .then(data => {
+                    const candidates = data.success && Array.isArray(data.result) ? data.result.filter(item => item.url) : [];
+                    const titleNeedle = normalizeRadioText(track.title).split(' - ')[0];
+                    const artistNeedle = normalizeRadioText(track.user);
+                    const match = candidates.find(item => {
+                        const candidateTitle = normalizeRadioText(item.title);
+                        const candidateArtist = normalizeRadioText(item.user);
+                        return candidateTitle.includes(titleNeedle) && candidateArtist.includes(artistNeedle);
+                    }) || candidates[0];
+                    if (match) Object.assign(track, { id: match.id, url: match.url, duration: match.duration, plays: match.plays, thumbnail: match.thumbnail });
+                    return track;
+                })
+                .catch(error => {
+                    console.error('Radio track resolve error:', error);
+                    return track;
+                });
+            radioResolvePromises.set(key, promise);
+            return promise;
+        }
+
+        function openRadioStation(stationId) {
+            currentRadioStation = CURATED_RADIOS.find(station => station.id === stationId) || null;
+            if (!currentRadioStation) return;
+            renderRadioStationDetail();
+            const detail = document.getElementById('radio-detail');
+            detail.classList.remove('hidden');
+            setTimeout(() => detail.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30);
+        }
+
+        function closeRadioStation() {
+            currentRadioStation = null;
+            document.getElementById('radio-detail').classList.add('hidden');
+        }
+
+        function renderRadioStationDetail() {
+            if (!currentRadioStation) return;
+            const station = currentRadioStation;
+            document.getElementById('radio-hero').innerHTML = `${radioArtMarkup(station, true)}
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs uppercase tracking-[0.18em] text-gray-400 font-semibold mb-2">${escapeHtml(station.type)}</p>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">${escapeHtml(station.title)}</h2>
+                    <p class="text-sm text-gray-300 mt-3 max-w-xl">${escapeHtml(station.description)}</p>
+                    <div class="flex flex-wrap items-center gap-2 mt-5">
+                        <span class="radio-pill"><i class="fa-solid fa-music text-soundcloud-orange"></i> ${station.songs.length} songs</span>
+                        <span class="radio-pill"><i class="fa-solid fa-face-smile text-soundcloud-orange"></i> ${escapeHtml(station.mood)}</span>
+                        <span class="text-xs text-gray-500">Curated by ${escapeHtml(station.curatedBy)}</span>
+                    </div>
+                </div>`;
+            document.getElementById('radio-track-count').textContent = `${station.tracks.length} hand-picked tracks · Play continuously or shuffle the sequence`;
+            renderRadioTrackList();
+        }
+
+        function renderRadioTrackList() {
+            const list = document.getElementById('radio-track-list');
+            if (!list || !currentRadioStation) return;
+            list.innerHTML = '';
+            currentRadioStation.tracks.forEach((track, index) => {
+                const isCurrent = currentTracks[currentIndex] === track;
+                const liked = track.url && isTrackLiked(track.url);
+                const row = document.createElement('div');
+                row.className = `radio-track-row ${isCurrent && isPlaying ? 'is-playing' : ''}`;
+                row.onclick = () => playRadioTrack(index);
+                row.innerHTML = `<div class="radio-track-number">${isCurrent && isPlaying ? '<i class="fa-solid fa-volume-high text-soundcloud-orange"></i>' : index + 1}</div>
+                    <div class="radio-track-info"><div class="radio-track-title" title="${escapeHtml(track.title)}">${escapeHtml(track.title)}</div><div class="radio-track-artist" title="${escapeHtml(track.user)}">${escapeHtml(track.user)}</div></div>
+                    <div class="radio-track-meta">${escapeHtml(track.duration || '')}</div>
+                    <button class="radio-track-action ${liked ? 'saved' : ''}" onclick="saveRadioTrack(event, ${index})" title="${liked ? 'Remove from Liked Songs' : 'Save to Liked Songs'}"><i class="${liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i></button>
+                    <button class="radio-track-action" onclick="toggleRadioMenu(event, ${index})" title="More options"><i class="fa-solid fa-ellipsis"></i></button>
+                    <div id="radio-menu-${index}" class="radio-track-menu hidden">
+                        <button class="radio-menu-item" onclick="saveRadioTrack(event, ${index})"><i class="fa-solid fa-heart"></i> ${liked ? 'Remove from Liked' : 'Save to Liked Songs'}</button>
+                        <button class="radio-menu-item" onclick="addRadioTrackToPlaylist(event, ${index})"><i class="fa-solid fa-plus"></i> Add to playlist</button>
+                        <button class="radio-menu-item" onclick="copyRadioTrack(event, ${index})"><i class="fa-solid fa-link"></i> Copy track link</button>
+                    </div>`;
+                list.appendChild(row);
+            });
+        }
+
+        function toggleRadioMenu(event, index) {
+            event.stopPropagation();
+            document.querySelectorAll('.radio-track-menu').forEach(menu => { if (menu.id !== `radio-menu-${index}`) menu.classList.add('hidden'); });
+            const menu = document.getElementById(`radio-menu-${index}`);
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        async function playRadioTrack(index) {
+            if (!currentRadioStation || !currentRadioStation.tracks[index]) return;
+            document.querySelectorAll('.radio-track-menu').forEach(menu => menu.classList.add('hidden'));
+            const track = await resolveRadioTrack(currentRadioStation.tracks[index]);
+            if (!track.url) { showRadioToast('This track could not be found right now.'); return; }
+            currentTracks = currentRadioStation.tracks.filter(item => item.url);
+            currentIndex = currentTracks.indexOf(track);
+            if (!checkAndIncrementFreePlay()) return;
+            await streamAndPlayTrack(track);
+            renderRadioTrackList();
+        }
+
+        async function startActiveRadio(shuffle = false) {
+            if (!currentRadioStation) return;
+            const station = currentRadioStation;
+            showRadioToast(shuffle ? 'Preparing a shuffled radio queue…' : 'Preparing your radio queue…');
+            await Promise.all(station.tracks.map(resolveRadioTrack));
+            let queue = station.tracks.filter(track => track.url);
+            if (!queue.length) { showRadioToast('No playable tracks found for this station yet.'); return; }
+            if (shuffle) {
+                queue = [...queue];
+                for (let i = queue.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [queue[i], queue[j]] = [queue[j], queue[i]]; }
+            }
+            currentTracks = queue;
+            currentIndex = 0;
+            if (!checkAndIncrementFreePlay()) return;
+            await streamAndPlayTrack(currentTracks[0]);
+            renderRadioTrackList();
+        }
+
+        async function persistRadioLike(track) {
+            if (currentTier === 'starter' || currentTier === 'free') {
+                alert('Liked Songs & Playlists are available on Popular (₱29) and Premium (₱49) plans!');
+                window.location.href = '/upgrade.html';
+                return null;
+            }
+            if (!track.url) return null;
+            const isLiked = isTrackLiked(track.url);
+            if (isLiked) {
+                likedTracks = likedTracks.filter(item => item.url !== track.url);
+                if (supabaseClient && currentUser) await supabaseClient.from('liked_songs').delete().eq('user_id', currentUser.id).eq('url', track.url);
+            } else {
+                const trackData = { id: track.id || Date.now(), title: track.title, user: track.user, duration: track.duration, plays: track.plays, url: track.url, thumbnail: track.thumbnail || '' };
+                likedTracks.unshift(trackData);
+                if (supabaseClient && currentUser) await supabaseClient.from('liked_songs').insert([{ user_id: currentUser.id, track_id: String(trackData.id), title: trackData.title, artist: trackData.user, duration: trackData.duration, plays: trackData.plays, url: trackData.url, thumbnail: trackData.thumbnail }]);
+            }
+            updateLikedCount();
+            renderLikedTracks();
+            return !isLiked;
+        }
+
+        async function saveRadioTrack(event, index) {
+            event.stopPropagation();
+            if (!currentRadioStation) return;
+            const track = await resolveRadioTrack(currentRadioStation.tracks[index]);
+            if (!track.url) { showRadioToast('Could not save this track until a playable result is found.'); return; }
+            const added = await persistRadioLike(track);
+            renderRadioTrackList();
+            if (added !== null) showRadioToast(added ? 'Saved to Liked Songs' : 'Removed from Liked Songs');
+        }
+
+        async function addRadioTrackToPlaylist(event, index) {
+            event.stopPropagation();
+            if (!currentRadioStation) return;
+            const track = await resolveRadioTrack(currentRadioStation.tracks[index]);
+            if (!track.url) { showRadioToast('Could not add this track until a playable result is found.'); return; }
+            if (currentTier === 'starter' || currentTier === 'free') {
+                alert('Liked Songs & Playlists are available on Popular (₱29) and Premium (₱49) plans!');
+                window.location.href = '/upgrade.html';
+                return;
+            }
+            const playlistName = prompt('Add to playlist:', 'OPM Favorites');
+            if (!playlistName || !playlistName.trim()) return;
+            const name = playlistName.trim();
+            radioPlaylists[name] = radioPlaylists[name] || [];
+            if (!radioPlaylists[name].some(item => item.url === track.url)) radioPlaylists[name].push({ title: track.title, user: track.user, url: track.url, thumbnail: track.thumbnail, duration: track.duration, id: track.id });
+            localStorage.setItem('jay_radio_playlists', JSON.stringify(radioPlaylists));
+            showRadioToast(`Added to ${name}`);
+        }
+
+        async function copyRadioTrack(event, index) {
+            event.stopPropagation();
+            if (!currentRadioStation) return;
+            const track = await resolveRadioTrack(currentRadioStation.tracks[index]);
+            if (track.url && navigator.clipboard) await navigator.clipboard.writeText(track.url);
+            document.querySelectorAll('.radio-track-menu').forEach(menu => menu.classList.add('hidden'));
+            showRadioToast(track.url ? 'Track link copied' : 'Track link is unavailable');
+        }
+
+        document.addEventListener('click', () => document.querySelectorAll('.radio-track-menu').forEach(menu => menu.classList.add('hidden')));
+
         // Tab Navigation
         function switchTab(tab) {
             if (currentTier === 'starter' && tab === 'liked') {
@@ -770,9 +1136,11 @@
             const searchView = document.getElementById('view-search');
             const likedView = document.getElementById('view-liked');
             const discoverView = document.getElementById('view-discover');
+            const radioView = document.getElementById('view-radio');
             const searchBtn = document.getElementById('tab-search-btn');
             const likedBtn = document.getElementById('tab-liked-btn');
             const discoverBtn = document.getElementById('tab-discover-btn');
+            const radioBtn = document.getElementById('tab-radio-btn');
 
             const activeClass = 'px-4 py-1.5 rounded-lg text-xs font-medium transition bg-soundcloud-orange text-white';
             const inactiveClass = 'px-4 py-1.5 rounded-lg text-xs font-medium transition text-gray-400 hover:text-white';
@@ -780,9 +1148,11 @@
             searchView.classList.add('hidden');
             likedView.classList.add('hidden');
             discoverView.classList.add('hidden');
+            radioView.classList.add('hidden');
             searchBtn.className = inactiveClass;
             likedBtn.className = inactiveClass;
             discoverBtn.className = inactiveClass;
+            radioBtn.className = inactiveClass;
 
             if (tab === 'search') {
                 searchView.classList.remove('hidden');
@@ -795,6 +1165,10 @@
                 discoverView.classList.remove('hidden');
                 discoverBtn.className = activeClass;
                 loadDiscover();
+            } else if (tab === 'radio') {
+                radioView.classList.remove('hidden');
+                radioBtn.className = activeClass;
+                renderCuratedRadioCatalog();
             }
         }
 
